@@ -1,10 +1,11 @@
-package com.konovus.noter;
+package com.konovus.noter.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 
 import android.os.Bundle;
 
+import com.konovus.noter.R;
 import com.konovus.noter.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
