@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@+id/dashboard"
+    <item android:id="@+id/memos"
         android:icon="@drawable/ic_dash"
         android:title="Memos"/>
     <item android:id="@+id/journal"
         android:icon="@drawable/ic_journal"
         android:title="Journal"/>
-    <item android:id="@+id/Vault"
-        android:icon="@drawable/ic_lock"
-        android:title="Vault"/>
+<!--    <item android:id="@+id/Vault"-->
+<!--        android:icon="@drawable/ic_lock"-->
+<!--        android:title="Vault"/>-->
 </menu>

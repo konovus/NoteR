@@ -6,21 +6,20 @@ import android.os.AsyncTask;
 import com.konovus.noter.dao.NoteDao;
 import com.konovus.noter.database.NoteDatabase;
 import com.konovus.noter.entity.Note;
+import com.konovus.noter.util.NOTE_TYPE;
 
 import java.util.List;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-public class MemosRepository {
+public class NotesRepository {
 
     private NoteDao noteDao;
-    private LiveData<List<Note>> allNotes;
 
-    public MemosRepository(Application application){
+    public NotesRepository(Application application){
         NoteDatabase noteDatabase = NoteDatabase.getInstance(application);
         noteDao = noteDatabase.noteDao();
-        allNotes = noteDao.getAllNotes();
     }
 
     public void insert(Note note){
@@ -32,8 +31,12 @@ public class MemosRepository {
     public void delete(Note note){
         new DeleteNoteAsyncTask(noteDao).execute(note);
     }
-    public LiveData<List<Note>> getAllNotes(){ return allNotes;}
-    
+    public Note getNoteById(int id){
+        return noteDao.getNoteById(id);
+    }
+    public LiveData<List<Note>> getAllNotes(String note_type){ return noteDao.getAllNotes(note_type);}
+    public LiveData<List<Note>> searchNotes(String searchQuery, String note_type){
+        return noteDao.searchNotes(searchQuery, note_type);}
 
     private static class InsertNoteAsyncTask extends AsyncTask<Note, Void, Void> {
         private NoteDao noteDao;

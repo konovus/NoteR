@@ -1,10 +1,14 @@
 package com.konovus.noter.entity;
 
+import com.konovus.noter.util.NOTE_TYPE;
+import com.konovus.noter.util.Note_type_converter;
+
 import java.io.Serializable;
 import java.util.Date;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
 
 @Entity(tableName = "notes")
 public class Note implements Serializable {
@@ -14,9 +18,12 @@ public class Note implements Serializable {
     private String title;
     private String text;
     private String tag;
-    private Date timestamp;
+    private String date;
     private String image_ref;
     private String color;
+    @TypeConverters(Note_type_converter.class)
+    private NOTE_TYPE note_type;
+
 
     public Note() {}
 
@@ -26,6 +33,14 @@ public class Note implements Serializable {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public NOTE_TYPE getNote_type() {
+        return note_type;
+    }
+
+    public void setNote_type(NOTE_TYPE note_type) {
+        this.note_type = note_type;
     }
 
     public String getColor() {
@@ -60,12 +75,12 @@ public class Note implements Serializable {
         this.tag = tag;
     }
 
-    public Date getTimestamp() {
-        return timestamp;
+    public String getDate() {
+        return date;
     }
 
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
+    public void setDate(String date) {
+        this.date = date;
     }
 
     public String getImage_ref() {
