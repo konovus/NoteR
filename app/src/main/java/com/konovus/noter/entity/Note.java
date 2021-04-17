@@ -4,8 +4,8 @@ import com.konovus.noter.util.NOTE_TYPE;
 import com.konovus.noter.util.Note_type_converter;
 
 import java.io.Serializable;
-import java.util.Date;
 
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
@@ -19,13 +19,18 @@ public class Note implements Serializable {
     private String text;
     private String tag;
     private String date;
-    private String image_ref;
+    private String image_path;
     private String color;
     @TypeConverters(Note_type_converter.class)
     private NOTE_TYPE note_type;
 
 
     public Note() {}
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        return super.equals(obj);
+    }
 
     public int getId() {
         return id;
@@ -83,11 +88,11 @@ public class Note implements Serializable {
         this.date = date;
     }
 
-    public String getImage_ref() {
-        return image_ref;
+    public String getImage_path() {
+        return image_path;
     }
 
-    public void setImage_ref(String image_ref) {
-        this.image_ref = image_ref;
+    public void setImage_path(String image_path) {
+        this.image_path = image_path;
     }
 }

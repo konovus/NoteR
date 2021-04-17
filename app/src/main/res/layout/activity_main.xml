@@ -16,6 +16,7 @@
             android:id="@+id/view_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="?actionBarSize"
             android:layout_marginBottom="?actionBarSize"/>
 
         <com.google.android.material.bottomappbar.BottomAppBar
