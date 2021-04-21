@@ -1,11 +1,11 @@
 package com.konovus.noter.util;
 
 public enum NOTE_TYPE {
-    MEMO("memo"),
-    JOURNAL("journal"),
-    VAULT("vault"),
-    DRAFT("draft"),
-    TRASH("trash");
+    MEMO("MEMO"),
+    JOURNAL("JOURNAL"),
+    VAULT("VAULT"),
+    DRAFT("DRAFT"),
+    TRASH("TRASH");
 
     private final String text;
 
@@ -15,6 +15,6 @@ public enum NOTE_TYPE {
 
     @Override
     public String toString() {
-        return text;
+        return text.toUpperCase();
     }
 }

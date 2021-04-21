@@ -29,5 +29,5 @@ public class MemosViewModel extends AndroidViewModel {
         return repository.searchNotes(searchQuery, note_type);
     }
     public void deleteNote(Note note){repository.delete(note);}
-
+    public void deleteAllNotes(){repository.deleteAllNotes();}
 }

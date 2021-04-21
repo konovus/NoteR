@@ -6,6 +6,7 @@ import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,15 +15,23 @@ import com.google.android.material.navigation.NavigationView;
 import com.konovus.noter.R;
 import com.konovus.noter.adapter.FragmentsAdapter;
 import com.konovus.noter.databinding.ActivityMainBinding;
+import com.konovus.noter.viewmodel.AddNoteViewModel;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private FragmentsAdapter fragmentsAdapter;
+    public static final int REQUEST_CODE_ADD_NOTE = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        
+        binding.addBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, NewNoteActivity.class);
+            intent.putExtra("note_type", binding.viewPager.getCurrentItem());
+            startActivityForResult(intent, REQUEST_CODE_ADD_NOTE);
+        });
 
         setTitle("NoteIt");
         setupViewPager();

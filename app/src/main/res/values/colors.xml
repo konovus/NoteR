@@ -9,6 +9,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="transparent">#00FFFFFF</color>
     <color name="colorDefaultNoteColor">#333333</color>
-    <color name="colorDateColor">#CACACA</color>
+    <color name="colorHint">#CACACA</color>
 
 </resources>

@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/_11ssp"
             android:fontFamily="@font/opensans_regular"
-            android:textColor="@color/colorDateColor"
+            android:textColor="@color/colorHint"
             android:layout_marginTop="@dimen/_10sdp"
             app:layout_constraintTop_toBottomOf="@id/text_note"
             app:layout_constraintEnd_toEndOf="parent" />

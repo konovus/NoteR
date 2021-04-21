@@ -4,6 +4,7 @@ import com.konovus.noter.util.NOTE_TYPE;
 import com.konovus.noter.util.Note_type_converter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import androidx.annotation.Nullable;
 import androidx.room.Entity;
@@ -28,8 +29,25 @@ public class Note implements Serializable {
     public Note() {}
 
     @Override
-    public boolean equals(@Nullable Object obj) {
-        return super.equals(obj);
+    public boolean equals(Object o) {
+        // self check
+        if (this == o)
+            return true;
+        // null check
+        if (o == null)
+            return false;
+        // type check and cast
+        if (getClass() != o.getClass())
+            return false;
+        Note note = (Note) o;
+        // field comparison
+        return Objects.equals(title, note.title)
+                && Objects.equals(text, note.text)
+                && Objects.equals(tag, note.tag)
+                && Objects.equals(date, note.date)
+                && Objects.equals(image_path, note.image_path)
+                && Objects.equals(color, note.color)
+                && Objects.equals(note_type, note.note_type);
     }
 
     public int getId() {
