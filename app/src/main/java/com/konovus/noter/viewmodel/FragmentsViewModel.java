@@ -13,19 +13,19 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
-public class MemosViewModel extends AndroidViewModel {
+public class FragmentsViewModel extends AndroidViewModel {
 
     private NotesRepository repository;
 
-    public MemosViewModel(@NonNull Application application) {
+    public FragmentsViewModel(@NonNull Application application) {
         super(application);
         repository = new NotesRepository(application);
     }
 
-    public LiveData<List<Note>> getAllNotes(String note_type){
+    public LiveData<List<Note>> getAllNotes(NOTE_TYPE note_type){
         return repository.getAllNotes(note_type);
     }
-    public LiveData<List<Note>> searchNotes(String searchQuery, String note_type){
+    public LiveData<List<Note>> searchNotes(String searchQuery, NOTE_TYPE note_type){
         return repository.searchNotes(searchQuery, note_type);
     }
     public void deleteNote(Note note){repository.delete(note);}

@@ -8,47 +8,44 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.konovus.noter.R;
+import com.konovus.noter.databinding.FragmentJournalBinding;
 import com.konovus.noter.databinding.MemoLayoutItemBinding;
 import com.konovus.noter.entity.Note;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHolder> {
+public class JournalAdapter extends RecyclerView.Adapter<JournalAdapter.JournalViewHolder> {
 
     private List<Note> notes;
     private Context context;
     private LayoutInflater layoutInflater;
 
-    public MemosAdapter(List<Note> notes, Context context) {
+    public JournalAdapter(List<Note> notes, Context context) {
         this.notes = notes;
         this.context = context;
     }
 
     @NonNull
     @Override
-    public MemosViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public JournalViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if(layoutInflater == null)
             layoutInflater = LayoutInflater.from(parent.getContext());
         MemoLayoutItemBinding binding = DataBindingUtil.inflate(
                 layoutInflater, R.layout.memo_layout_item, parent, false
         );
-        return new MemosViewHolder(binding);
+        return new JournalViewHolder(binding);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MemosViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull JournalViewHolder holder, int position) {
         holder.bind(notes.get(position));
     }
 
@@ -57,11 +54,11 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
         return notes.size();
     }
 
-    public class MemosViewHolder extends RecyclerView.ViewHolder{
+    class JournalViewHolder extends RecyclerView.ViewHolder{
 
-        private MemoLayoutItemBinding binding;
+        MemoLayoutItemBinding binding;
 
-        public MemosViewHolder(MemoLayoutItemBinding binding) {
+        public JournalViewHolder(MemoLayoutItemBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
@@ -92,7 +89,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
     }
 
     public void setData(List<Note> data) {
-        Log.i("NoteR", "MemosAdapter - from setData");
+        Log.i("NoteR", "JournalAdapter - from setData");
         if(data != null){
             notes.clear();
             notes.addAll(data);
@@ -107,42 +104,4 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
         notes.set(pos, note);
         notifyItemChanged(pos, note);
     }
-
-//    private static DiffUtil.ItemCallback<Note> DIFF_CALLBACK =
-//            new DiffUtil.ItemCallback<Note>() {
-//                @Override
-//                public boolean areItemsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
-//                    return oldItem.getId() == newItem.getId();
-//                }
-//
-//                @Override
-//                public boolean areContentsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
-//                    return oldItem.getTitle().equals(newItem.getTitle()) &&
-//                           oldItem.getColor().equals(newItem.getColor()) &&
-//                           oldItem.getText().equals(newItem.getText()) &&
-//                           oldItem.getImage_path().equals(newItem.getImage_path()) &&
-//                           oldItem.getTag().equals(newItem.getTag());
-//                }
-//            };
-
-
-//    @Override
-//    public void submitList(@Nullable List<Note> list) {
-//        super.submitList(list != null ? new ArrayList<>(list) : null);
-//    }
-//
-//    static class NoteDiffCallback extends DiffUtil.ItemCallback<Note> {
-//
-//        @Override
-//        public boolean areItemsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
-//            return oldItem.getId() == newItem.getId();
-//
-//        }
-//
-//        @Override
-//        public boolean areContentsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
-//            return oldItem.equals(newItem);
-//
-//        }
-//    }
 }

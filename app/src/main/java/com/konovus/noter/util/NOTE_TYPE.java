@@ -13,8 +13,8 @@ public enum NOTE_TYPE {
         this.text = text;
     }
 
-    @Override
-    public String toString() {
-        return text.toUpperCase();
-    }
+//    @Override
+//    public String toString() {
+//        return text;
+//    }
 }

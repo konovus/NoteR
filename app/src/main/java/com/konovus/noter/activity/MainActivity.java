@@ -1,6 +1,7 @@
 package com.konovus.noter.activity;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
@@ -8,6 +9,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -22,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private FragmentsAdapter fragmentsAdapter;
     public static final int REQUEST_CODE_ADD_NOTE = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,13 +33,22 @@ public class MainActivity extends AppCompatActivity {
         binding.addBtn.setOnClickListener(v -> {
             Intent intent = new Intent(this, NewNoteActivity.class);
             intent.putExtra("note_type", binding.viewPager.getCurrentItem());
+            Log.i("NoteR", "current item : " + binding.viewPager.getCurrentItem());
             startActivityForResult(intent, REQUEST_CODE_ADD_NOTE);
         });
 
-        setTitle("NoteIt");
+        binding.viewPager.setCurrentItem(1);
+
+
         setupViewPager();
         setupBottomNav();
+
+        if(getIntent().getIntExtra("note_type", -1) != -1) {
+            binding.viewPager.setCurrentItem(getIntent().getIntExtra("note_type", -1));
+            binding.bottomNav.setSelectedItemId(getIntent().getIntExtra("note_type", -1));
+        }
     }
+
 
     private void setupBottomNav() {
         binding.bottomNav.setBackground(null);

@@ -42,8 +42,6 @@ public class NewNoteActivity extends AppCompatActivity {
             onBackPressed();
         });
         binding.noteItBtn.setOnClickListener(v -> saveNote());
-
-//        noteTextWatcher();
     }
 
     private void noteTextWatcher() {
@@ -85,8 +83,9 @@ public class NewNoteActivity extends AppCompatActivity {
 
         viewModel.addNote(note);
         isSaved = true;
-
-        startActivity(new Intent(this, MainActivity.class));
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
+        startActivity(intent);
     }
 
     @Override

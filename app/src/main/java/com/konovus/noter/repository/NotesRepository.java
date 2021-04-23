@@ -37,8 +37,8 @@ public class NotesRepository {
     public Note getNoteById(int id){
         return noteDao.getNoteById(id);
     }
-    public LiveData<List<Note>> getAllNotes(String note_type){ return noteDao.getAllNotes(note_type);}
-    public LiveData<List<Note>> searchNotes(String searchQuery, String note_type){
+    public LiveData<List<Note>> getAllNotes(NOTE_TYPE note_type){ return noteDao.getAllNotes(note_type);}
+    public LiveData<List<Note>> searchNotes(String searchQuery, NOTE_TYPE note_type){
         return noteDao.searchNotes(searchQuery, note_type);}
 
     private static class InsertNoteAsyncTask extends AsyncTask<Note, Void, Void> {

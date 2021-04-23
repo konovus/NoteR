@@ -22,7 +22,7 @@ public class Note implements Serializable {
     private String date;
     private String image_path;
     private String color;
-    @TypeConverters(Note_type_converter.class)
+//    @TypeConverters(Note_type_converter.class)
     private NOTE_TYPE note_type;
 
 
