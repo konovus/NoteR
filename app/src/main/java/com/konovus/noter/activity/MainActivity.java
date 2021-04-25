@@ -2,6 +2,7 @@ package com.konovus.noter.activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
@@ -33,15 +34,12 @@ public class MainActivity extends AppCompatActivity {
         binding.addBtn.setOnClickListener(v -> {
             Intent intent = new Intent(this, NewNoteActivity.class);
             intent.putExtra("note_type", binding.viewPager.getCurrentItem());
-            Log.i("NoteR", "current item : " + binding.viewPager.getCurrentItem());
             startActivityForResult(intent, REQUEST_CODE_ADD_NOTE);
         });
 
-        binding.viewPager.setCurrentItem(1);
-
-
         setupViewPager();
         setupBottomNav();
+
 
         if(getIntent().getIntExtra("note_type", -1) != -1) {
             binding.viewPager.setCurrentItem(getIntent().getIntExtra("note_type", -1));
@@ -98,6 +96,4 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-
 }

@@ -4,8 +4,10 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -64,14 +66,26 @@ public class MemosFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 //        setHasOptionsMenu(true);
 
+        setupDrawer();
         setupRecyclerView();
         setupSearch();
         observe();
     }
 
+
+    private void setupDrawer() {
+        DrawerLayout drawerLayout = getActivity().findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(requireActivity(), drawerLayout, binding.toolbar,
+                R.string.nav_drawer_open, R.string.nav_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+    }
+
+
     private void setupSearch() {
-        binding.search.setMaxWidth(Integer.MAX_VALUE);
-        binding.search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        SearchView search = getView().findViewById(R.id.search);
+        search.setMaxWidth(Integer.MAX_VALUE);
+        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if(query != null && !query.isEmpty())
