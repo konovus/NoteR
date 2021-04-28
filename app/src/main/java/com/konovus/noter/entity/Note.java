@@ -22,33 +22,35 @@ public class Note implements Serializable {
     private String date;
     private String image_path;
     private String color;
+    private String reminder;
 //    @TypeConverters(Note_type_converter.class)
     private NOTE_TYPE note_type;
 
 
     public Note() {}
 
-    @Override
-    public boolean equals(Object o) {
-        // self check
-        if (this == o)
-            return true;
-        // null check
-        if (o == null)
-            return false;
-        // type check and cast
-        if (getClass() != o.getClass())
-            return false;
-        Note note = (Note) o;
-        // field comparison
-        return Objects.equals(title, note.title)
-                && Objects.equals(text, note.text)
-                && Objects.equals(tag, note.tag)
-                && Objects.equals(date, note.date)
-                && Objects.equals(image_path, note.image_path)
-                && Objects.equals(color, note.color)
-                && Objects.equals(note_type, note.note_type);
-    }
+//    @Override
+//    public boolean equals(Object o) {
+//        // self check
+//        if (this == o)
+//            return true;
+//        // null check
+//        if (o == null)
+//            return false;
+//        // type check and cast
+//        if (getClass() != o.getClass())
+//            return false;
+//        Note note = (Note) o;
+//        // field comparison
+//        return Objects.equals(title, note.title)
+//                && Objects.equals(text, note.text)
+//                && Objects.equals(tag, note.tag)
+//                && Objects.equals(date, note.date)
+//                && Objects.equals(image_path, note.image_path)
+//                && Objects.equals(color, note.color)
+//                && Objects.equals(note_type, note.note_type);
+//    }
+
 
     public int getId() {
         return id;
@@ -56,6 +58,14 @@ public class Note implements Serializable {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getReminder() {
+        return reminder;
+    }
+
+    public void setReminder(String reminder) {
+        this.reminder = reminder;
     }
 
     public NOTE_TYPE getNote_type() {

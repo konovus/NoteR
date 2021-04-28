@@ -10,5 +10,14 @@
     <color name="transparent">#00FFFFFF</color>
     <color name="colorDefaultNoteColor">#333333</color>
     <color name="colorHint">#CACACA</color>
+    <color name="colorBlackish">#504E4E</color>
+    <color name="colorMiscellBG">#1F1F1F</color>
+    <color name="colorNoteColor1">#F9A825</color>
+    <color name="colorNoteColor2">#2E7D32</color>
+    <color name="colorNoteColor3">#C62828</color>
+    <color name="colorNoteColor4">#00838F</color>
+    <color name="colorNoteColor5">#6A1B9A</color>
+    <color name="colorNoteColor6">#EF6C00</color>
+
 
 </resources>

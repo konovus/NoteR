@@ -8,6 +8,7 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/newNoteWrapper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".activity.NewNoteActivity">
@@ -26,59 +27,129 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_back_arrow"
                 android:layout_marginStart="@dimen/_10sdp"
-                app:tint="@color/black" />
+                app:tint="@color/colorBlackish" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Add New Note"
+                android:text=""
+                android:layout_weight="1"
                 android:layout_marginStart="@dimen/_10sdp"
-                android:textSize="@dimen/_17ssp"
-                android:fontFamily="@font/ubuntu_bold"
                 android:textColor="@color/black" />
+            <ImageView
+                android:id="@+id/add_color"
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="@dimen/_30sdp"
+                android:src="@drawable/ic_outline_palette"
+                android:padding="@dimen/_3sdp"
+                app:tint="@color/colorBlackish"/>
+            <ImageView
+                android:id="@+id/add_img"
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="@dimen/_30sdp"
+                android:src="@drawable/ic_add_img_outline"
+                android:padding="@dimen/_3sdp"
+                app:tint="@color/colorBlackish"/>
+            <ImageView
+                android:id="@+id/add_alarm"
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="@dimen/_30sdp"
+                android:src="@drawable/ic_add_alarm"
+                android:padding="@dimen/_3sdp"
+                app:tint="@color/colorBlackish"/>
+            <ImageView
+                android:id="@+id/add_lock"
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="@dimen/_30sdp"
+                android:src="@drawable/ic_outline_lock_24"
+                android:padding="@dimen/_3sdp"
+                android:layout_marginEnd="@dimen/_5sdp"
+                app:tint="@color/colorBlackish"/>
         </LinearLayout>
-
-        <EditText
-            android:id="@+id/title"
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/nestedScroll"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Title"
-            android:maxLines="1"
-            android:background="@null"
-            android:textSize="@dimen/_16ssp"
-            android:fontFamily="@font/opensans_regular"
-            android:textColorHint="@color/colorHint"
-            android:layout_marginTop="@dimen/_20sdp"
-            android:layout_marginStart="@dimen/_10sdp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="?actionBarSize"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/top_bar" />
+            app:layout_constraintTop_toBottomOf="@id/top_bar"
+            app:layout_constraintBottom_toBottomOf="parent">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <EditText
+                    android:id="@+id/title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="Title"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:background="@null"
+                    android:textSize="@dimen/_16ssp"
+                    android:fontFamily="@font/opensans_regular"
+                    android:textColorHint="@color/colorHint"
+                    android:layout_marginTop="@dimen/_20sdp"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+                <EditText
+                    android:id="@+id/tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="#Tag"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:background="@null"
+                    android:textSize="@dimen/_13ssp"
+                    android:fontFamily="@font/ubuntu_regular"
+                    android:textColorHint="@color/colorHint"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/title" />
 
-        <EditText
-            android:id="@+id/note_text"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/_200sdp"
-            android:hint="Note here..."
-            android:background="@null"
-            android:gravity="top"
-            android:textSize="@dimen/_14ssp"
-            android:fontFamily="@font/ubuntu_regular"
-            android:textColorHint="@color/colorHint"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:layout_marginEnd="@dimen/_10sdp"
-            app:layout_constraintStart_toStartOf="@id/title"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/title" />
+                <com.makeramen.roundedimageview.RoundedImageView
+                    android:id="@+id/note_img"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:visibility="gone"
+                    app:riv_corner_radius="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginHorizontal="@dimen/_10sdp"
+                    app:layout_constraintTop_toBottomOf="@id/title"
+                    app:layout_constraintStart_toStartOf="@id/title"/>
 
-        <TextView
+                <EditText
+                    android:id="@+id/note_text"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_200sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:background="@null"
+                    android:fontFamily="@font/ubuntu_regular"
+                    android:gravity="top"
+                    android:hint="Type note here..."
+                    android:textColorHint="@color/colorHint"
+                    android:textSize="@dimen/_14ssp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@id/title"
+                    app:layout_constraintTop_toBottomOf="@id/note_img" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.core.widget.NestedScrollView>
+        <ImageView
             android:id="@+id/noteItBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Note It"
-            android:gravity="center"
-            android:textSize="@dimen/_16ssp"
-            android:fontFamily="@font/ubuntu_medium"
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="@dimen/_50sdp"
+            android:padding="@dimen/_10sdp"
+            android:src="@drawable/ic_add_custom"
+            android:background="@drawable/save_bg"
             android:layout_margin="@dimen/_20sdp"
-            app:layout_constraintTop_toBottomOf="@id/note_text" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
