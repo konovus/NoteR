@@ -47,6 +47,7 @@ import com.konovus.noter.viewmodel.AddNoteViewModel;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.File;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,7 +60,6 @@ import java.util.concurrent.TimeUnit;
 public class NewNoteActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 1;
-    private static final String CHANNEL_ID = "1";
     private ActivityNewNoteBinding binding;
     private AddNoteViewModel viewModel;
     private Note note;
@@ -77,7 +77,12 @@ public class NewNoteActivity extends AppCompatActivity {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_new_note);
         viewModel = new ViewModelProvider(this).get(AddNoteViewModel.class);
 
-        note = new Note();
+        if(getIntent().getSerializableExtra("note") != null)
+            fillPageWithData();
+        else {
+            note = new Note();
+            getWindow().setStatusBarColor(Color.WHITE);
+        }
 
         binding.backArrow.setOnClickListener(v -> {
             isSaved = true;
@@ -85,10 +90,53 @@ public class NewNoteActivity extends AppCompatActivity {
         });
         binding.noteItBtn.setOnClickListener(v -> saveNote());
 
-        getWindow().setStatusBarColor(Color.WHITE);
+        selectedColor = note.getColor();
+
         binding.addColor.setOnClickListener(v -> setupPalette());
         binding.addImg.setOnClickListener(v -> setupAddImage());
         binding.addAlarm.setOnClickListener(v -> setupAlarm());
+        binding.addChecklist.setOnClickListener(v -> setupChecklist());
+
+        binding.deleteImg.setOnClickListener(v -> {
+            binding.noteImg.setImageBitmap(null);
+            binding.noteImg.setVisibility(View.GONE);
+            binding.deleteImg.setVisibility(View.GONE);
+            new File(note.getImage_path()).delete();
+            note.setImage_path("");
+            bitmap = null;
+        });
+        binding.delete.setOnClickListener(v -> deleteNote());
+    }
+
+    private void setupChecklist() {
+
+    }
+
+    private void deleteNote() {
+        if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty())
+            new File(note.getImage_path()).delete();
+        viewModel.deleteNote(note);
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
+        startActivity(intent);
+    }
+
+    private void fillPageWithData() {
+        note = (Note) getIntent().getSerializableExtra("note");
+        if(note.getTitle() != null)
+            binding.title.setText(note.getTitle());
+        binding.noteText.setText(note.getText());
+        if(note.getTag() != null)
+            binding.tag.setText(note.getTag());
+        if(note.getColor() != null) {
+            binding.newNoteWrapper.setBackgroundColor(Color.parseColor(note.getColor()));
+            getWindow().setStatusBarColor(Color.parseColor(note.getColor()));
+        } else getWindow().setStatusBarColor(Color.WHITE);
+        if(note.getImage_path() != null) {
+            binding.noteImg.setImageURI(Uri.parse(note.getImage_path()));
+            binding.noteImg.setVisibility(View.VISIBLE);
+            binding.deleteImg.setVisibility(View.VISIBLE);
+        }
     }
 
     private void setupAlarm() {
@@ -178,7 +226,13 @@ public class NewNoteActivity extends AppCompatActivity {
         Collections.addAll(colors, palleteBinding.imageColor1, palleteBinding.imageColor2,
                 palleteBinding.imageColor3, palleteBinding.imageColor4, palleteBinding.imageColor5, palleteBinding.imageColor6);
 
-        for(ImageView color : colors)
+
+        for(ImageView color : colors){
+            if(!selectedColor.trim().isEmpty())
+                for(ImageView c : colors)
+                    if(c.getTag().toString().equals(selectedColor))
+                        c.setImageResource(R.drawable.ic_check);
+                    else c.setImageResource(0);
             color.setOnClickListener(v -> {
                 selectedColor = color.getTag().toString();
                 binding.newNoteWrapper.setBackgroundColor(Color.parseColor(selectedColor));
@@ -188,10 +242,11 @@ public class NewNoteActivity extends AppCompatActivity {
                         c.setImageResource(R.drawable.ic_check);
                     else c.setImageResource(0);
             });
+        }
+
     }
 
-    private void saveNote() {
-        Note note = new Note();
+    private void  saveNote() {
         if(getIntent().getIntExtra("note_type", -1) != -1)
             if(getIntent().getIntExtra("note_type", -1) == 0)
                 note.setNote_type(NOTE_TYPE.MEMO);
@@ -207,16 +262,20 @@ public class NewNoteActivity extends AppCompatActivity {
         }
         if(selectedColor != null)
             note.setColor(selectedColor);
-//      saving the cropped image
-        new SaveInternallyAsync().execute();
 
-        String date = new SimpleDateFormat("MMMM dd 'at' HH:mm a", Locale.ENGLISH).format(Calendar.getInstance().getTime());
-        note.setDate(date);
-
+        if(note.getDate() == null) {
+            String date = new SimpleDateFormat("MMMM dd 'at' HH:mm a", Locale.ENGLISH).format(Calendar.getInstance().getTime());
+            note.setDate(date);
+        }
         if(date_reminder != null)
             setupWorker();
+        if(!binding.tag.getText().toString().trim().isEmpty())
+            note.setTag(binding.tag.getText().toString());
 
-        viewModel.addNote(note);
+        if(note.getId() != 0)
+            viewModel.updateNote(note);
+        else viewModel.addNote(note);
+
         isSaved = true;
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
@@ -243,6 +302,9 @@ public class NewNoteActivity extends AppCompatActivity {
                         bitmap = BitmapFactory.decodeStream(inputStream);
                         binding.noteImg.setImageBitmap(bitmap);
                         binding.noteImg.setVisibility(View.VISIBLE);
+                        binding.deleteImg.setVisibility(View.VISIBLE);
+                        //      saving the cropped image
+                        new SaveInternallyAsync().execute();
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -257,9 +319,10 @@ public class NewNoteActivity extends AppCompatActivity {
         protected Void doInBackground(Void... voids) {
             String name = String.valueOf(System.currentTimeMillis());
             String path = StorageUtils.saveToInternalStorage(bitmap, getApplicationContext(), name);
-            note.setImage_path(path);
+            note.setImage_path(path + "/" + name + ".jpg");
             return null;
         }
+
     }
 
     @Override

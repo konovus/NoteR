@@ -11,24 +11,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
+        android:background="@color/colorMainBG"
         tools:openDrawer="start">
 
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@color/transparent"
             tools:context=".activity.MainActivity">
 
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/view_pager"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="?actionBarSize"/>
+                android:layout_height="match_parent"/>
 
             <com.google.android.material.bottomappbar.BottomAppBar
                 android:id="@+id/bottomAppBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
+                android:backgroundTint="@color/colorJet"
                 app:fabAlignmentMode="end"
                 app:fabCradleMargin="@dimen/_7sdp"
                 app:fabCradleRoundedCornerRadius="@dimen/_7sdp">
@@ -39,6 +41,9 @@
                     android:layout_height="match_parent"
                     android:layout_marginEnd="@dimen/_100sdp"
                     android:background="@color/transparent"
+                    android:elevation="0dp"
+                    app:itemTextColor="@drawable/icon_tint_selector"
+                    app:itemIconTint="@drawable/icon_tint_selector"
                     app:menu="@menu/bottom_nav_menu" />
 
             </com.google.android.material.bottomappbar.BottomAppBar>
@@ -48,6 +53,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_add_custom"
+                android:backgroundTint="@color/colorJet"
+                app:borderWidth="0dp"
+                app:tint="@color/colorMyAccent"
                 app:layout_anchor="@id/bottomAppBar" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
@@ -57,6 +65,9 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="start"
+            android:theme="@style/NavigationDrawerStyle"
+            app:headerLayout="@layout/nav_header"
+            app:itemIconSize="@dimen/_15sdp"
             app:menu="@menu/drawer_menu"/>
 
     </androidx.drawerlayout.widget.DrawerLayout>

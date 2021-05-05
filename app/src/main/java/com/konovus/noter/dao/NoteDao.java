@@ -29,6 +29,6 @@ public interface NoteDao {
     @Query("DELETE FROM notes")
     void deleteAllNotes();
     @Query("SELECT * FROM notes WHERE note_type = :note_type AND (title LIKE '%' || :searchQuery || '%'" +
-            " OR text LIKE '%' || :searchQuery || '%' OR tag LIKE '%' || :searchQuery || '%') ORDER BY date ")
+            " OR text LIKE '%' || :searchQuery || '%' OR tag LIKE '%' || :searchQuery || '%') ORDER BY date DESC")
     LiveData<List<Note>> searchNotes(String searchQuery, NOTE_TYPE note_type);
 }

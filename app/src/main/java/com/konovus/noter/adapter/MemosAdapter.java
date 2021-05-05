@@ -2,6 +2,9 @@ package com.konovus.noter.adapter;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +23,7 @@ import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
@@ -30,10 +34,12 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
     private List<Note> notes;
     private Context context;
     private LayoutInflater layoutInflater;
+    private OnMemosClickListener clickListener;
 
-    public MemosAdapter(List<Note> notes, Context context) {
+    public MemosAdapter(List<Note> notes, Context context, OnMemosClickListener clickListener) {
         this.notes = notes;
         this.context = context;
+        this.clickListener = clickListener;
     }
 
     @NonNull
@@ -57,6 +63,10 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
         return notes.size();
     }
 
+    public interface OnMemosClickListener{
+        void OnMemoClick(Note note);
+    }
+
     public class MemosViewHolder extends RecyclerView.ViewHolder{
 
         private MemoLayoutItemBinding binding;
@@ -68,26 +78,35 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
 
         public void bind(Note note){
 
-            if(note.getImage_path() != null){
-                binding.imageNote.setImageBitmap(BitmapFactory.decodeFile(note.getImage_path()));
+            if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty()){
+                binding.imageNote.setImageURI(Uri.parse(note.getImage_path()));
                 binding.imageNote.setVisibility(View.VISIBLE);
             } else binding.imageNote.setVisibility(View.GONE);
 
-            if(note.getTitle() != null) {
+            if(note.getTitle() != null && !note.getTitle().trim().isEmpty()) {
                 binding.title.setText(note.getTitle());
                 binding.title.setVisibility(View.VISIBLE);
             } else binding.title.setVisibility(View.GONE);
 
             binding.textNote.setText(note.getText());
 
+            GradientDrawable gradientDrawable = (GradientDrawable) binding.layoutNote.getBackground();
+            if(note.getColor() != null && !note.getColor().trim().isEmpty())
+                gradientDrawable.setColor(Color.parseColor(note.getColor()));
+            else gradientDrawable.setColor(ContextCompat.getColor(context, R.color.colorSmokeBlack));
+
             SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd 'at' HH:mm a", Locale.ENGLISH);
+            SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd", Locale.ENGLISH);
+
             Date date;
             try {
                 date = sdf.parse(note.getDate());
-                binding.dateNote.setText(sdf.format(date));
+                binding.dateNote.setText(sdf2.format(date));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
+
+            binding.layoutNote.setOnClickListener(v -> clickListener.OnMemoClick(note));
         }
     }
 

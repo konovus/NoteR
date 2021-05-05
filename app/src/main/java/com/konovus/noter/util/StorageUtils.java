@@ -14,9 +14,10 @@ import java.io.IOException;
 public class StorageUtils {
 
     public static String saveToInternalStorage(Bitmap bitmapImage, Context context, String imageName){
-        ContextWrapper cw = new ContextWrapper(context);
-        // path to /data/data/yourapp/app_data/imageDir
-        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+        // path to /android/data/yourapp/files/images
+        File directory = new File(context.getExternalFilesDir("/").getAbsolutePath()+"/images/");
+        if(!directory.exists())
+            directory.mkdir();
         // Create imageDir
         File mypath = new File(directory,imageName + ".jpg");
 
@@ -24,7 +25,7 @@ public class StorageUtils {
         try {
             fos = new FileOutputStream(mypath);
             // Use the compress method on the BitMap object to write image to the OutputStream
-            bitmapImage.compress(Bitmap.CompressFormat.PNG, 70, fos);
+            bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

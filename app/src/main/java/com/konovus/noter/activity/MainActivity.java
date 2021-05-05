@@ -6,6 +6,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
@@ -19,27 +20,29 @@ import com.konovus.noter.R;
 import com.konovus.noter.adapter.FragmentsAdapter;
 import com.konovus.noter.databinding.ActivityMainBinding;
 import com.konovus.noter.viewmodel.AddNoteViewModel;
+import com.konovus.noter.viewmodel.FragmentsViewModel;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private FragmentsAdapter fragmentsAdapter;
     public static final int REQUEST_CODE_ADD_NOTE = 1;
-
+    private FragmentsViewModel viewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        
+        viewModel = new ViewModelProvider(this).get(FragmentsViewModel.class);
+
         binding.addBtn.setOnClickListener(v -> {
             Intent intent = new Intent(this, NewNoteActivity.class);
             intent.putExtra("note_type", binding.viewPager.getCurrentItem());
             startActivityForResult(intent, REQUEST_CODE_ADD_NOTE);
         });
 
+
         setupViewPager();
         setupBottomNav();
-
 
         if(getIntent().getIntExtra("note_type", -1) != -1) {
             binding.viewPager.setCurrentItem(getIntent().getIntExtra("note_type", -1));
@@ -47,10 +50,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private void setupBottomNav() {
         binding.bottomNav.setBackground(null);
-
         binding.bottomNav.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.memos:

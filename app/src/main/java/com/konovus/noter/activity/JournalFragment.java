@@ -1,11 +1,13 @@
 package com.konovus.noter.activity;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -14,12 +16,16 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
+import com.google.android.material.navigation.NavigationView;
 import com.konovus.noter.R;
 import com.konovus.noter.adapter.JournalAdapter;
 import com.konovus.noter.adapter.MemosAdapter;
@@ -81,7 +87,22 @@ public class JournalFragment extends Fragment {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
     }
+    private void setupDrawerNumbers(List<Note> noteList){
+        NavigationView navigationView = requireActivity().findViewById(R.id.navView);
 
+        // get menu from navigationView
+        Menu menu = navigationView.getMenu();
+
+        // find MenuItem you want to change
+        MenuItem nav_journal = menu.findItem(R.id.journal);
+        TextView journalTV;
+//These lines should be added in the OnCreate() of your main activity
+        journalTV = (TextView) nav_journal.getActionView();
+        journalTV.setGravity(Gravity.CENTER_VERTICAL);
+        journalTV.setTypeface(null, Typeface.BOLD);
+        journalTV.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorMyAccent));
+        journalTV.setText(String.valueOf(noteList.size()));
+    }
     private void setupSearch() {
         SearchView search = getView().findViewById(R.id.search);
         search.setMaxWidth(Integer.MAX_VALUE);
@@ -105,6 +126,7 @@ public class JournalFragment extends Fragment {
         viewModel.getAllNotes(NOTE_TYPE.JOURNAL).observe(requireActivity(), notesList -> {
             Log.i("NoteR", "JournalF - from observe");
             adapter.setData(notesList);
+            setupDrawerNumbers(notesList);
         });
     }
 

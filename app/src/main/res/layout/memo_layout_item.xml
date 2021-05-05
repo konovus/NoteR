@@ -7,9 +7,9 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_note"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/_10sdp"
         android:layout_marginTop="@dimen/_5sdp"
         android:layout_marginStart="@dimen/_5sdp"
         android:background="@drawable/bg_note">
@@ -30,9 +30,10 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/ubuntu_bold"
             android:textSize="@dimen/_16ssp"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
             android:visibility="gone"
             android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginStart="@dimen/_10sdp"
             app:layout_constraintTop_toBottomOf="@id/image_note"
             app:layout_constraintStart_toStartOf="parent" />
 
@@ -41,8 +42,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="@dimen/_15ssp"
+            android:textColor="@color/white"
             android:fontFamily="@font/ubuntu_regular"
-            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_margin="@dimen/_10sdp"
             app:layout_constraintTop_toBottomOf="@id/title" />
 
         <TextView
@@ -52,8 +54,9 @@
             android:textSize="@dimen/_11ssp"
             android:fontFamily="@font/opensans_regular"
             android:textColor="@color/colorHint"
-            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_margin="@dimen/_10sdp"
             app:layout_constraintTop_toBottomOf="@id/text_note"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

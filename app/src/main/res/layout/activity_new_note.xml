@@ -51,6 +51,13 @@
                 android:padding="@dimen/_3sdp"
                 app:tint="@color/colorBlackish"/>
             <ImageView
+                android:id="@+id/add_checklist"
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="@dimen/_30sdp"
+                android:src="@drawable/ic_checklist"
+                android:padding="@dimen/_3sdp"
+                app:tint="@color/colorBlackish"/>
+            <ImageView
                 android:id="@+id/add_alarm"
                 android:layout_width="@dimen/_30sdp"
                 android:layout_height="@dimen/_30sdp"
@@ -62,6 +69,13 @@
                 android:layout_width="@dimen/_30sdp"
                 android:layout_height="@dimen/_30sdp"
                 android:src="@drawable/ic_outline_lock_24"
+                android:padding="@dimen/_3sdp"
+                app:tint="@color/colorBlackish"/>
+            <ImageView
+                android:id="@+id/delete"
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="@dimen/_30sdp"
+                android:src="@drawable/ic_trash_outline"
                 android:padding="@dimen/_3sdp"
                 android:layout_marginEnd="@dimen/_5sdp"
                 app:tint="@color/colorBlackish"/>
@@ -79,7 +93,7 @@
                 android:layout_height="match_parent">
                 <EditText
                     android:id="@+id/title"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:hint="Title"
                     android:maxLines="1"
@@ -91,7 +105,24 @@
                     android:layout_marginTop="@dimen/_20sdp"
                     android:layout_marginStart="@dimen/_10sdp"
                     app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tag"
                     app:layout_constraintTop_toTopOf="parent" />
+<!--                <Spinner-->
+<!--                    android:id="@+id/spinner_tag"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginEnd="@dimen/_5sdp"-->
+<!--                    app:layout_constraintEnd_toStartOf="@id/add_tag"-->
+<!--                    app:layout_constraintTop_toTopOf="@id/title"/>-->
+<!--                <ImageView-->
+<!--                    android:id="@+id/add_tag"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:src="@drawable/ic_add_plus"-->
+<!--                    android:background="@drawable/save_bg"-->
+<!--                    android:layout_marginEnd="@dimen/_10sdp"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="@id/title"/>-->
                 <EditText
                     android:id="@+id/tag"
                     android:layout_width="wrap_content"
@@ -118,6 +149,17 @@
                     android:layout_marginHorizontal="@dimen/_10sdp"
                     app:layout_constraintTop_toBottomOf="@id/title"
                     app:layout_constraintStart_toStartOf="@id/title"/>
+                <ImageView
+                    android:id="@+id/delete_img"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_trash"
+                    app:tint="@color/white"
+                    app:layout_constraintTop_toTopOf="@id/note_img"
+                    app:layout_constraintEnd_toEndOf="@id/note_img"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginEnd="@dimen/_18sdp"
+                    android:visibility="gone"/>
 
                 <EditText
                     android:id="@+id/note_text"
@@ -147,8 +189,14 @@
             android:background="@drawable/save_bg"
             android:layout_margin="@dimen/_20sdp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent" />
+        <View
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="@dimen/_50sdp"
+            android:visibility="invisible"
+            android:background="@drawable/circle"
+            app:layout_constraintStart_toStartOf="@id/noteItBtn"
+            app:layout_constraintTop_toTopOf="@id/noteItBtn"/>
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
