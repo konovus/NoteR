@@ -21,7 +21,9 @@ public class FragmentsViewModel extends AndroidViewModel {
         super(application);
         repository = new NotesRepository(application);
     }
-
+    public void addNote(Note note){
+        repository.insert(note);
+    }
     public LiveData<List<Note>> getAllNotes(NOTE_TYPE note_type){
         return repository.getAllNotes(note_type);
     }

@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
 import com.konovus.noter.R;
 import com.konovus.noter.databinding.MemoLayoutItemBinding;
 import com.konovus.noter.entity.Note;
@@ -35,6 +36,10 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
     private Context context;
     private LayoutInflater layoutInflater;
     private OnMemosClickListener clickListener;
+    public static final int NOTE_TITLE = 0;
+    public static final int NOTE_IMAGE = 1;
+    public static final int NOTE_TITLE_IMAGE = 2;
+    public static final int NOTE_TEXT = 3;
 
     public MemosAdapter(List<Note> notes, Context context, OnMemosClickListener clickListener) {
         this.notes = notes;
@@ -55,7 +60,35 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
 
     @Override
     public void onBindViewHolder(@NonNull MemosViewHolder holder, int position) {
-        holder.bind(notes.get(position));
+        switch (getItemViewType(position)){
+            case NOTE_TEXT:
+                holder.bind(notes.get(position), false, false);
+                break;
+            case NOTE_IMAGE:
+                holder.bind(notes.get(position), true, false);
+                break;
+            case NOTE_TITLE:
+                holder.bind(notes.get(position), false, true);
+                break;
+            case NOTE_TITLE_IMAGE:
+                holder.bind(notes.get(position), true, true);
+                break;
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        Note note = notes.get(position);
+        if(note.getTitle() != null && !note.getTitle().trim().isEmpty() && note.getImage_path() == null)
+            return NOTE_TITLE;
+        else if(note.getImage_path() != null && (note.getTitle() == null || note.getTitle().trim().isEmpty()))
+            return NOTE_IMAGE;
+        else if((note.getTitle() == null || note.getTitle().trim().isEmpty())&& note.getImage_path() == null)
+            return NOTE_TEXT;
+        else if(note.getTitle() != null && !note.getTitle().trim().isEmpty() && note.getImage_path() != null)
+            return NOTE_TITLE_IMAGE;
+
+        return super.getItemViewType(position);
     }
 
     @Override
@@ -76,17 +109,28 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
             this.binding = binding;
         }
 
-        public void bind(Note note){
-
-            if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty()){
-                binding.imageNote.setImageURI(Uri.parse(note.getImage_path()));
+        public void bind(Note note, boolean image, boolean title){
+            ViewGroup.MarginLayoutParams lp =  (ViewGroup.MarginLayoutParams)binding.title.getLayoutParams();
+            ViewGroup.MarginLayoutParams lp_text =  (ViewGroup.MarginLayoutParams)binding.textNote.getLayoutParams();
+            if(image){
+                Glide.with(context).load(note.getImage_path()).into(binding.imageNote);
                 binding.imageNote.setVisibility(View.VISIBLE);
-            } else binding.imageNote.setVisibility(View.GONE);
+                binding.imageNoteWrap.setCardBackgroundColor(Color.parseColor(
+                        note.getColor() != null ? note.getColor() : "#1C2226"));
 
-            if(note.getTitle() != null && !note.getTitle().trim().isEmpty()) {
+                lp.setMargins(10, 0, 0, 0);
+
+            } else {
+                lp.setMargins(10, 50, 0, 0);
+            }
+            binding.title.setLayoutParams(lp);
+
+            if(title){
                 binding.title.setText(note.getTitle());
                 binding.title.setVisibility(View.VISIBLE);
-            } else binding.title.setVisibility(View.GONE);
+            } else lp_text.setMargins(30, 50, 30, 0);
+
+            binding.textNote.setLayoutParams(lp_text);
 
             binding.textNote.setText(note.getText());
 
@@ -95,18 +139,14 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
                 gradientDrawable.setColor(Color.parseColor(note.getColor()));
             else gradientDrawable.setColor(ContextCompat.getColor(context, R.color.colorSmokeBlack));
 
-            SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd 'at' HH:mm a", Locale.ENGLISH);
+            SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd 'at' HH:mm a yyyy", Locale.ENGLISH);
             SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd", Locale.ENGLISH);
 
-            Date date;
-            try {
-                date = sdf.parse(note.getDate());
-                binding.dateNote.setText(sdf2.format(date));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            Date date = note.getDate();
+            binding.dateNote.setText(sdf2.format(date));
 
             binding.layoutNote.setOnClickListener(v -> clickListener.OnMemoClick(note));
+            binding.executePendingBindings();
         }
     }
 

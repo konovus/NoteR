@@ -1,5 +1,6 @@
 package com.konovus.noter.activity;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 
@@ -27,6 +28,7 @@ import android.widget.TextView;
 
 import com.google.android.material.navigation.NavigationView;
 import com.konovus.noter.R;
+import com.konovus.noter.adapter.FragmentsAdapter;
 import com.konovus.noter.adapter.JournalAdapter;
 import com.konovus.noter.adapter.MemosAdapter;
 import com.konovus.noter.databinding.FragmentJournalBinding;
@@ -40,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class JournalFragment extends Fragment {
+public class JournalFragment extends Fragment implements FragmentsAdapter.UpdateableFragment, JournalAdapter.OnJournalClickListener {
 
     private FragmentJournalBinding binding;
     private JournalAdapter adapter;
@@ -74,19 +76,20 @@ public class JournalFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        setupDrawer();
+//        setupDrawer();
+
         setupRecyclerView();
-        setupSearch();
+//        setupSearch();
         observe();
     }
 
-    private void setupDrawer() {
-        DrawerLayout drawerLayout = getActivity().findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(requireActivity(), drawerLayout, binding.toolbar,
-                R.string.nav_drawer_open, R.string.nav_drawer_close);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-    }
+//    private void setupDrawer() {
+//        DrawerLayout drawerLayout = getActivity().findViewById(R.id.drawer_layout);
+//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(requireActivity(), drawerLayout, binding.toolbar,
+//                R.string.nav_drawer_open, R.string.nav_drawer_close);
+//        drawerLayout.addDrawerListener(toggle);
+//        toggle.syncState();
+//    }
     private void setupDrawerNumbers(List<Note> noteList){
         NavigationView navigationView = requireActivity().findViewById(R.id.navView);
 
@@ -103,66 +106,80 @@ public class JournalFragment extends Fragment {
         journalTV.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorMyAccent));
         journalTV.setText(String.valueOf(noteList.size()));
     }
-    private void setupSearch() {
-        SearchView search = getView().findViewById(R.id.search);
-        search.setMaxWidth(Integer.MAX_VALUE);
-        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                if(query != null && !query.isEmpty())
-                    searchDB(query);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                if(newText != null )
-                    searchDB(newText);
-                return true;
-            }
-        });
-    }
+//    private void setupSearch() {
+//        SearchView search = getView().findViewById(R.id.search);
+//        search.setMaxWidth(Integer.MAX_VALUE);
+//        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//                if(query != null && !query.isEmpty())
+//                    searchDB(query);
+//                return true;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String newText) {
+//                if(newText != null )
+//                    searchDB(newText);
+//                return true;
+//            }
+//        });
+//    }
     private void observe() {
         viewModel.getAllNotes(NOTE_TYPE.JOURNAL).observe(requireActivity(), notesList -> {
             Log.i("NoteR", "JournalF - from observe");
             adapter.setData(notesList);
-            setupDrawerNumbers(notesList);
+//            setupDrawerNumbers(notesList);
         });
     }
 
     private void setupRecyclerView() {
-        adapter = new JournalAdapter(notes, requireContext());
+        adapter = new JournalAdapter(notes, requireContext(), this);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recyclerView.setAdapter(adapter);
     }
 
+//    @Override
+//    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+//        inflater.inflate(R.menu.top_bar_menu, menu);
+//        super.onCreateOptionsMenu(menu, inflater);
+//
+//        SearchView searchView = (SearchView)menu.findItem(R.id.search).getActionView();
+//        searchView.setMaxWidth(Integer.MAX_VALUE);
+//        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//                if(query != null && !query.isEmpty())
+//                    searchDB(query);
+//                return true;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String newText) {
+//                if(newText != null )
+//                    searchDB(newText);
+//                return true;
+//            }
+//        });
+//    }
+//
+//    private void searchDB(String query){
+//        viewModel.searchNotes(query, NOTE_TYPE.JOURNAL).observe(requireActivity(), notesList -> {
+//            adapter.setData(notesList);
+//        });
+//    }
+
     @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.top_bar_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-
-        SearchView searchView = (SearchView)menu.findItem(R.id.search).getActionView();
-        searchView.setMaxWidth(Integer.MAX_VALUE);
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                if(query != null && !query.isEmpty())
-                    searchDB(query);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                if(newText != null )
-                    searchDB(newText);
-                return true;
-            }
-        });
+    public void update(List<Note> noteList, NOTE_TYPE note_type) {
+        if(note_type == NOTE_TYPE.JOURNAL)
+            adapter.setData(noteList);
     }
 
-    private void searchDB(String query){
-        viewModel.searchNotes(query, NOTE_TYPE.JOURNAL).observe(requireActivity(), notesList -> {
-            adapter.setData(notesList);
-        });
+    @Override
+    public void OnJournalClick(Note note) {
+        Intent intent = new Intent(requireContext(), NewNoteActivity.class);
+        intent.putExtra("note_type", 1);
+        intent.putExtra("note", note);
+        startActivity(intent);
     }
 }

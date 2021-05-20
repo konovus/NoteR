@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/check_row_wrapper"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/_26sdp"
+    android:background="@drawable/checkrow_shape"
+    android:paddingHorizontal="8dp">
+
+    <CheckBox
+        android:id="@+id/check_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        />
+    <EditText
+        android:id="@+id/textView_checklist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:includeFontPadding="false"
+        android:layout_marginStart="-10dp"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:background="@null"
+        android:textColor="#E8E8E8"
+        android:fontFamily="@font/opensans_regular"
+        android:textSize="@dimen/_15ssp"
+        android:imeOptions="actionDone"
+        />
+
+</LinearLayout>

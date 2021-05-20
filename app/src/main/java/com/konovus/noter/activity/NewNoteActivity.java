@@ -7,6 +7,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
@@ -14,11 +15,14 @@ import androidx.work.WorkRequest;
 
 import android.Manifest;
 import android.app.DatePickerDialog;
+import android.app.IntentService;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.TimePickerDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -27,12 +31,16 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -40,7 +48,9 @@ import com.konovus.noter.R;
 import com.konovus.noter.databinding.ActivityNewNoteBinding;
 import com.konovus.noter.databinding.PalleteLayoutBinding;
 import com.konovus.noter.entity.Note;
+import com.konovus.noter.util.Delegate;
 import com.konovus.noter.util.NOTE_TYPE;
+import com.konovus.noter.util.SavingNoteService;
 import com.konovus.noter.util.StorageUtils;
 import com.konovus.noter.util.WorkerNoteIt;
 import com.konovus.noter.viewmodel.AddNoteViewModel;
@@ -53,6 +63,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -63,12 +74,13 @@ public class NewNoteActivity extends AppCompatActivity {
     private ActivityNewNoteBinding binding;
     private AddNoteViewModel viewModel;
     private Note note;
-    private boolean isSaved;
-    private String selectedColor;
+    private static boolean isSaved;
+    private String selectedColor = "#1C2226";
     private Bitmap bitmap;
     private String date_reminder;
-    final Calendar myCalendar = Calendar.getInstance();
-
+    private final Calendar myCalendar = Calendar.getInstance();
+    private int note_id;
+    private boolean fromPickImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,16 +93,28 @@ public class NewNoteActivity extends AppCompatActivity {
             fillPageWithData();
         else {
             note = new Note();
-            getWindow().setStatusBarColor(Color.WHITE);
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorSmokeBlack));
         }
 
         binding.backArrow.setOnClickListener(v -> {
             isSaved = true;
+            if(note.getId() != 0 && note.getImage_path() != null && !note.getImage_path().trim().isEmpty()){
+                new File(note.getImage_path()).delete();
+                viewModel.deleteNote(note);
+            }
             onBackPressed();
         });
-        binding.noteItBtn.setOnClickListener(v -> saveNote());
+        binding.noteItBtn.setOnClickListener(v -> {
+            saveNote();
+            if(note.getText() != null && !note.getText().trim().isEmpty()){
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
+                startActivity(intent);
+            }
+        });
 
-        selectedColor = note.getColor();
+        if(note.getColor() != null && !note.getColor().trim().isEmpty())
+            selectedColor = note.getColor();
 
         binding.addColor.setOnClickListener(v -> setupPalette());
         binding.addImg.setOnClickListener(v -> setupAddImage());
@@ -102,20 +126,72 @@ public class NewNoteActivity extends AppCompatActivity {
             binding.noteImg.setVisibility(View.GONE);
             binding.deleteImg.setVisibility(View.GONE);
             new File(note.getImage_path()).delete();
-            note.setImage_path("");
+            note.setImage_path(null);
             bitmap = null;
         });
+
         binding.delete.setOnClickListener(v -> deleteNote());
+
+        setupTextWatcher();
+    }
+
+    private void setupTextWatcher() {
+        binding.noteText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                saveEmergency(s.toString());
+            }
+        });
+    }
+
+    private void saveEmergency(String s) {
+        if(note.getId() == 0)
+            note.setId(getIntent().getIntExtra("max", 100) + 1);
+        if(getIntent().getIntExtra("note_type", -1) != -1)
+            if(getIntent().getIntExtra("note_type", -1) == 0)
+                note.setNote_type(NOTE_TYPE.MEMO);
+            else note.setNote_type(NOTE_TYPE.JOURNAL);
+        if(!binding.title.getText().toString().trim().isEmpty())
+            note.setTitle(binding.title.getText().toString());
+        if(!s.trim().isEmpty() )
+            note.setText(s);
+        else return;
+        note.setColor(selectedColor);
+
+        if(note.getDate() == null)
+            note.setDate(Calendar.getInstance().getTime());
+
+        if(date_reminder != null)
+            setupWorker();
+        if(!binding.tag.getText().toString().trim().isEmpty())
+            note.setTag(binding.tag.getText().toString());
+
+        viewModel.addNote(note);
+
     }
 
     private void setupChecklist() {
-
+        LinearLayout check_row = (LinearLayout) LayoutInflater.from(this)
+                .inflate(R.layout.checklist_row, null);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(binding.checklistWrapper.getLayoutParams());
+        binding.checklistWrapper.addView(check_row, 0, layoutParams);
     }
 
     private void deleteNote() {
         if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty())
             new File(note.getImage_path()).delete();
         viewModel.deleteNote(note);
+        isSaved = true;
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
         startActivity(intent);
@@ -132,7 +208,7 @@ public class NewNoteActivity extends AppCompatActivity {
             binding.newNoteWrapper.setBackgroundColor(Color.parseColor(note.getColor()));
             getWindow().setStatusBarColor(Color.parseColor(note.getColor()));
         } else getWindow().setStatusBarColor(Color.WHITE);
-        if(note.getImage_path() != null) {
+        if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty()) {
             binding.noteImg.setImageURI(Uri.parse(note.getImage_path()));
             binding.noteImg.setVisibility(View.VISIBLE);
             binding.deleteImg.setVisibility(View.VISIBLE);
@@ -201,6 +277,7 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     private void setupAddImage() {
+        fromPickImage = true;
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_STORAGE_PERMISSION);
@@ -223,7 +300,7 @@ public class NewNoteActivity extends AppCompatActivity {
         mypopupWindow.showAsDropDown(binding.addColor);
         PalleteLayoutBinding palleteBinding = DataBindingUtil.bind(mypopupWindow.getContentView());
         List<ImageView> colors = new ArrayList<>();
-        Collections.addAll(colors, palleteBinding.imageColor1, palleteBinding.imageColor2,
+        Collections.addAll(colors, palleteBinding.imageColor0, palleteBinding.imageColor1, palleteBinding.imageColor2,
                 palleteBinding.imageColor3, palleteBinding.imageColor4, palleteBinding.imageColor5, palleteBinding.imageColor6);
 
 
@@ -260,26 +337,21 @@ public class NewNoteActivity extends AppCompatActivity {
             Toast.makeText(this, "Note text cannot be empty", Toast.LENGTH_SHORT).show();
             return;
         }
-        if(selectedColor != null)
-            note.setColor(selectedColor);
 
-        if(note.getDate() == null) {
-            String date = new SimpleDateFormat("MMMM dd 'at' HH:mm a", Locale.ENGLISH).format(Calendar.getInstance().getTime());
-            note.setDate(date);
-        }
+        note.setColor(selectedColor);
+
+        if(note.getDate() == null)
+            note.setDate(Calendar.getInstance().getTime());
+
         if(date_reminder != null)
             setupWorker();
         if(!binding.tag.getText().toString().trim().isEmpty())
             note.setTag(binding.tag.getText().toString());
 
-        if(note.getId() != 0)
-            viewModel.updateNote(note);
-        else viewModel.addNote(note);
+        viewModel.addNote(note);
 
         isSaved = true;
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
-        startActivity(intent);
+
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -303,6 +375,7 @@ public class NewNoteActivity extends AppCompatActivity {
                         binding.noteImg.setImageBitmap(bitmap);
                         binding.noteImg.setVisibility(View.VISIBLE);
                         binding.deleteImg.setVisibility(View.VISIBLE);
+                        fromPickImage = false;
                         //      saving the cropped image
                         new SaveInternallyAsync().execute();
                     } catch (Exception e) {
@@ -312,6 +385,7 @@ public class NewNoteActivity extends AppCompatActivity {
             }
         }
     }
+
 
     private class SaveInternallyAsync extends AsyncTask<Void, Void, Void> {
 
@@ -325,12 +399,16 @@ public class NewNoteActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.i("NoteR", "onDestroy");
-        if(!isSaved)
-            saveNote();
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        if(!isSaved && !fromPickImage) {
+//            if (note.getId() == 0) {
+//                note_id = (int) (Math.random() * 10000) + 1000;
+//                note.setId(note_id);
+//            }
+//            saveNote();
+//        }
+//    }
 
-    }
 }

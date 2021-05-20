@@ -13,29 +13,29 @@
             android:layout_height="match_parent"
             android:fitsSystemWindows="false"
             android:background="@color/colorMainBG">
-            <com.google.android.material.appbar.AppBarLayout
-                android:id="@+id/toolbar_wrap"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:fitsSystemWindows="true"
-                android:background="@null"
-                android:layout_marginHorizontal="@dimen/_10sdp"
-                android:elevation="@dimen/_4sdp"
-                app:layout_constraintTop_toTopOf="parent">
-                <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_35sdp"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:background="@drawable/toolbar_bg"
-                    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                    app:menu="@menu/top_bar_menu"
-                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                    app:title="Memos"
-                    app:layout_scrollFlags="scroll|enterAlways"
-                    />
-            </com.google.android.material.appbar.AppBarLayout>
+<!--            <com.google.android.material.appbar.AppBarLayout-->
+<!--                android:id="@+id/toolbar_wrap"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:orientation="vertical"-->
+<!--                android:fitsSystemWindows="true"-->
+<!--                android:background="@null"-->
+<!--                android:layout_marginHorizontal="@dimen/_10sdp"-->
+<!--                android:elevation="@dimen/_4sdp"-->
+<!--                app:layout_constraintTop_toTopOf="parent">-->
+<!--                <androidx.appcompat.widget.Toolbar-->
+<!--                    android:id="@+id/toolbar"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="@dimen/_35sdp"-->
+<!--                    android:layout_marginTop="@dimen/_5sdp"-->
+<!--                    android:background="@drawable/toolbar_bg"-->
+<!--                    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"-->
+<!--                    app:menu="@menu/top_bar_menu"-->
+<!--                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"-->
+<!--                    app:title="Memos"-->
+<!--                    app:layout_scrollFlags="scroll|enterAlways"-->
+<!--                    />-->
+<!--            </com.google.android.material.appbar.AppBarLayout>-->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

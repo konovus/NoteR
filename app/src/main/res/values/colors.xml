@@ -10,7 +10,8 @@
     <color name="transparent">#00FFFFFF</color>
     <color name="colorDefaultNoteColor">#333333</color>
     <color name="colorHint">#CACACA</color>
-    <color name="colorBlackish">#504E4E</color>
+    <color name="colorText">#E6E5E5</color>
+    <color name="colorIconTint">#979696</color>
     <color name="colorUnselectedIcons">#5E5453</color>
     <color name="colorMiscellBG">#1F1F1F</color>
     <color name="colorNoteColor1">#F9A825</color>
@@ -22,6 +23,7 @@
     <color name="colorMainBG">#181616</color>
     <color name="colorJet">#2E2E2E</color>
     <color name="colorSmokeBlack">#1C2226</color>
+    <color name="colorCheckShape">#293239</color>
     <color name="colorCadetGray">#8D9CA6</color>
     <color name="colorBrandy">#963F3C</color>
     <color name="colorMyAccent">#A54A3A</color>

@@ -4,6 +4,7 @@ import com.konovus.noter.util.NOTE_TYPE;
 import com.konovus.noter.util.Note_type_converter;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Objects;
 
 import androidx.annotation.Nullable;
@@ -19,7 +20,8 @@ public class Note implements Serializable {
     private String title;
     private String text;
     private String tag;
-    private String date;
+
+    private Date date;
     private String image_path;
     private String color;
     private String reminder;
@@ -108,11 +110,11 @@ public class Note implements Serializable {
         this.tag = tag;
     }
 
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
