@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class JournalFragment extends Fragment implements FragmentsAdapter.UpdateableFragment, JournalAdapter.OnJournalClickListener {
+public class JournalFragment extends Fragment {
 
     private FragmentJournalBinding binding;
     private JournalAdapter adapter;
@@ -78,9 +78,9 @@ public class JournalFragment extends Fragment implements FragmentsAdapter.Update
 
 //        setupDrawer();
 
-        setupRecyclerView();
+//        setupRecyclerView();
 //        setupSearch();
-        observe();
+//        observe();
     }
 
 //    private void setupDrawer() {
@@ -125,19 +125,19 @@ public class JournalFragment extends Fragment implements FragmentsAdapter.Update
 //            }
 //        });
 //    }
-    private void observe() {
-        viewModel.getAllNotes(NOTE_TYPE.JOURNAL).observe(requireActivity(), notesList -> {
-            Log.i("NoteR", "JournalF - from observe");
-            adapter.setData(notesList);
-//            setupDrawerNumbers(notesList);
-        });
-    }
+//    private void observe() {
+//        viewModel.getAllNotes(NOTE_TYPE.JOURNAL).observe(requireActivity(), notesList -> {
+//            Log.i("NoteR", "JournalF - from observe");
+//            adapter.setData(notesList);
+////            setupDrawerNumbers(notesList);
+//        });
+//    }
 
-    private void setupRecyclerView() {
-        adapter = new JournalAdapter(notes, requireContext(), this);
-        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        binding.recyclerView.setAdapter(adapter);
-    }
+//    private void setupRecyclerView() {
+//        adapter = new JournalAdapter(notes, requireContext(), this);
+//        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+//        binding.recyclerView.setAdapter(adapter);
+//    }
 
 //    @Override
 //    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
@@ -169,17 +169,17 @@ public class JournalFragment extends Fragment implements FragmentsAdapter.Update
 //        });
 //    }
 
-    @Override
-    public void update(List<Note> noteList, NOTE_TYPE note_type) {
-        if(note_type == NOTE_TYPE.JOURNAL || note_type == NOTE_TYPE.TRASH_JOURNAL)
-            adapter.setData(noteList);
-    }
-
-    @Override
-    public void OnJournalClick(Note note) {
-        Intent intent = new Intent(requireContext(), NewNoteActivity.class);
-        intent.putExtra("note_type", 1);
-        intent.putExtra("note", note);
-        startActivity(intent);
-    }
+//    @Override
+//    public void update(List<Note> noteList, NOTE_TYPE note_type) {
+//        if(note_type == NOTE_TYPE.JOURNAL || note_type == NOTE_TYPE.TRASH_JOURNAL)
+//            adapter.setData(noteList);
+//    }
+//
+//    @Override
+//    public void OnJournalClick(Note note) {
+//        Intent intent = new Intent(requireContext(), NewNoteActivity.class);
+//        intent.putExtra("note_type", 1);
+//        intent.putExtra("note", note);
+//        startActivity(intent);
+//    }
 }

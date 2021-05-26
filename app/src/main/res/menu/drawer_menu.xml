@@ -13,48 +13,15 @@
             android:icon="@drawable/ic_dash"
             app:actionViewClass="android.widget.TextView" />
         <item
-            android:id="@+id/journal"
-            android:title="Journal"
-            android:icon="@drawable/ic_journal"
-            app:actionViewClass="android.widget.TextView"/>
-        <item
             android:id="@+id/vault"
             android:title="Vault"
             android:icon="@drawable/ic_lock"
             app:actionViewClass="android.widget.TextView"/>
+        <item
+            android:id="@+id/trash"
+            android:title="Trash"
+            android:icon="@drawable/ic_trash"
+            app:actionViewClass="android.widget.TextView"/>
     </group>
-
-
-
-
-<!--    <item-->
-<!--        android:icon="@drawable/ic_tag"-->
-<!--        android:title="Tags">-->
-<!--        <menu >-->
-<!--            <group android:id="@+id/group_tag"-->
-<!--                android:checkableBehavior="single">-->
-<!--                <item-->
-<!--                    android:id="@+id/work"-->
-<!--                    android:title="Work" />-->
-<!--                <item-->
-<!--                    android:id="@+id/habits"-->
-<!--                    android:title="Habits" />-->
-<!--                <item-->
-<!--                    android:id="@+id/cooking"-->
-<!--                    android:title="Cooking Recipes" />-->
-<!--            </group>-->
-<!--        </menu>-->
-<!--    </item>-->
-
-<!--    <group android:id="@+id/last">-->
-<!--        <item-->
-<!--            android:id="@+id/trash"-->
-<!--            android:icon="@drawable/ic_trash"-->
-<!--            android:title="Trash" />-->
-<!--        <item-->
-<!--            android:id="@+id/cloud_save"-->
-<!--            android:icon="@drawable/ic_cloud_save"-->
-<!--            android:title="Save to cloud" />-->
-<!--    </group>-->
 
 </menu>

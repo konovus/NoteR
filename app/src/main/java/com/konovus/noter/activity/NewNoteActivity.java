@@ -87,24 +87,14 @@ public class NewNoteActivity extends AppCompatActivity {
             getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorSmokeBlack));
         }
 
-        binding.backArrow.setOnClickListener(v -> {
-            isSaved = true;
-            if(note.getId() != 0 && note.getImage_path() != null && !note.getImage_path().trim().isEmpty()){
-                new File(note.getImage_path()).delete();
-                viewModel.deleteNote(note);
-            }
-            onBackPressed();
-        });
+        binding.backArrow.setOnClickListener(v -> onBackPressed());
         binding.noteItBtn.setOnClickListener(v -> {
-            if(note.getNote_type() == NOTE_TYPE.TRASH_MEMO){
-                note.setNote_type(NOTE_TYPE.MEMO);
-                viewModel.updateNote(note);
-            }
-            else if(note.getNote_type() == NOTE_TYPE.TRASH_JOURNAL) {
-                note.setNote_type(NOTE_TYPE.JOURNAL);
-                viewModel.updateNote(note);
-            } else saveNote();
+
             if(note.getText() != null && !note.getText().trim().isEmpty()){
+                if(note.getNote_type() == NOTE_TYPE.TRASH){
+                    note.setNote_type(NOTE_TYPE.MEMO);
+                    viewModel.updateNote(note);
+                } else saveNote();
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
                 startActivity(intent);
@@ -160,10 +150,7 @@ public class NewNoteActivity extends AppCompatActivity {
     private void saveEmergency(String s) {
         if(note.getId() == 0)
             note.setId(getIntent().getIntExtra("max", 100) + 1);
-        if(getIntent().getIntExtra("note_type", -1) != -1)
-            if(getIntent().getIntExtra("note_type", -1) == 0)
-                note.setNote_type(NOTE_TYPE.MEMO);
-            else note.setNote_type(NOTE_TYPE.JOURNAL);
+        note.setNote_type(NOTE_TYPE.MEMO);
         if(!binding.title.getText().toString().trim().isEmpty())
             note.setTitle(binding.title.getText().toString());
         if(!s.trim().isEmpty() )
@@ -199,15 +186,13 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     private void deleteNote() {
-        if(note.getNote_type() == NOTE_TYPE.TRASH_MEMO || note.getNote_type() == NOTE_TYPE.TRASH_JOURNAL) {
+        if(note.getNote_type() == NOTE_TYPE.TRASH) {
             if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty())
                 new File(note.getImage_path()).delete();
             viewModel.deleteNote(note);
         } else{
             note.setRemoval_date(Calendar.getInstance().getTime());
-            if(note.getNote_type() == NOTE_TYPE.MEMO)
-                note.setNote_type(NOTE_TYPE.TRASH_MEMO);
-            else note.setNote_type(NOTE_TYPE.TRASH_JOURNAL);
+            note.setNote_type(NOTE_TYPE.TRASH);
             viewModel.updateNote(note);
         }
         isSaved = true;
@@ -218,7 +203,7 @@ public class NewNoteActivity extends AppCompatActivity {
 
     private void fillPageWithData() {
         note = (Note) getIntent().getSerializableExtra("note");
-        if(note.getNote_type() == NOTE_TYPE.TRASH_MEMO || note.getNote_type() == NOTE_TYPE.TRASH_JOURNAL) {
+        if(note.getNote_type() == NOTE_TYPE.TRASH) {
             binding.delete.setColorFilter(ContextCompat.getColor(this, R.color.colorBrandy),
                     PorterDuff.Mode.MULTIPLY);
             binding.noteItBtn.setImageResource(R.drawable.ic_baseline_replay);
@@ -348,10 +333,8 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     private void  saveNote() {
-        if(getIntent().getIntExtra("note_type", -1) != -1)
-            if(getIntent().getIntExtra("note_type", -1) == 0)
-                note.setNote_type(NOTE_TYPE.MEMO);
-            else note.setNote_type(NOTE_TYPE.JOURNAL);
+
+        note.setNote_type(NOTE_TYPE.MEMO);
 
         if(binding.title.getText() != null)
             note.setTitle(binding.title.getText().toString());
@@ -422,17 +405,5 @@ public class NewNoteActivity extends AppCompatActivity {
         }
 
     }
-
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        if(!isSaved && !fromPickImage) {
-//            if (note.getId() == 0) {
-//                note_id = (int) (Math.random() * 10000) + 1000;
-//                note.setId(note_id);
-//            }
-//            saveNote();
-//        }
-//    }
 
 }

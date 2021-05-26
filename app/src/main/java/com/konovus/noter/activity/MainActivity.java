@@ -1,7 +1,6 @@
 package com.konovus.noter.activity;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,6 +9,8 @@ import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
@@ -27,10 +28,10 @@ import android.widget.Toast;
 import com.google.android.material.navigation.NavigationView;
 import com.konovus.noter.R;
 import com.konovus.noter.adapter.FragmentsAdapter;
+import com.konovus.noter.adapter.MemosAdapter;
 import com.konovus.noter.databinding.ActivityMainBinding;
 import com.konovus.noter.entity.Note;
 import com.konovus.noter.util.NOTE_TYPE;
-import com.konovus.noter.viewmodel.AddNoteViewModel;
 import com.konovus.noter.viewmodel.FragmentsViewModel;
 
 import java.io.BufferedReader;
@@ -45,28 +46,25 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MemosAdapter.OnMemosClickListener {
 
     private ActivityMainBinding binding;
-    private FragmentsAdapter fragmentsAdapter;
     public static final int REQUEST_CODE_ADD_NOTE = 1;
     private FragmentsViewModel viewModel;
+    private MemosAdapter adapter;
+    private List<Note> notes = new ArrayList<>();
+
     private SubMenu tags;
     private SearchView search;
     private List<Note> memoList;
-    private List<Note> journalList;
-    private List<Note> trashList_memo;
-    private List<Note> trashList_journal;
+    private List<Note> trashList;
     private HashMap<String, Integer> tags_labels = new HashMap<>();
     private NavigationView navigationView;
     private List<Note> old_notes = new ArrayList<>();
@@ -81,38 +79,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         binding.addBtn.setOnClickListener(v -> {
             Intent intent = new Intent(this, NewNoteActivity.class);
-            intent.putExtra("note_type", binding.viewPager.getCurrentItem());
             intent.putExtra("max", max_id);
             startActivityForResult(intent, REQUEST_CODE_ADD_NOTE);
         });
 
         setupDrawer();
         setupSearch();
-        setupViewPager();
-        setupBottomNav();
+        setupRecyclerView();
+        observe();
 
-        if(getIntent().getIntExtra("note_type", -1) == 0) {
-            binding.viewPager.setCurrentItem(0);
-            binding.bottomNav.setSelectedItemId(0);
-        } else if(getIntent().getIntExtra("note_type", -1) == 1){
-            binding.viewPager.setCurrentItem(1);
-            binding.bottomNav.setSelectedItemId(1);
-        }
         checkInTrash();
     }
+    private void observe() {
+        viewModel.getAllNotes(NOTE_TYPE.MEMO).observe(this, notesList -> {
+            Log.i("NoteR", "MemosF - from observe");
+            adapter.setData(notesList);
+        });
+    }
+    private void setupRecyclerView() {
+        adapter = new MemosAdapter(notes, this, this);
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        binding.recyclerView.setAdapter(adapter);
+        binding.recyclerView.setItemViewCacheSize(100);
 
+    }
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void checkInTrash() {
-        trashList_memo = new ArrayList<>();
-        trashList_journal = new ArrayList<>();
-        viewModel.getAllNotes(NOTE_TYPE.TRASH_MEMO).observe(this, noteList -> {
-            trashList_memo = noteList;
+        trashList = new ArrayList<>();
+        viewModel.getAllNotes(NOTE_TYPE.TRASH).observe(this, noteList -> {
+            trashList = noteList;
             checkForExpiredNotes(noteList);
         });
-        viewModel.getAllNotes(NOTE_TYPE.TRASH_JOURNAL).observe(this, noteList -> {
-            trashList_journal = noteList;
-            checkForExpiredNotes(noteList);
-        });
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -141,18 +139,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if(query != null && !query.isEmpty())
-                    if(binding.viewPager.getCurrentItem() == 0)
                         searchDB(query, NOTE_TYPE.MEMO);
-                    else searchDB(query, NOTE_TYPE.JOURNAL);
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 if(newText != null )
-                    if(binding.viewPager.getCurrentItem() == 0)
                         searchDB(newText, NOTE_TYPE.MEMO);
-                    else searchDB(newText, NOTE_TYPE.JOURNAL);
                 return true;
             }
         });
@@ -160,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void searchDB(String query, final NOTE_TYPE note_type){
         viewModel.searchNotes(query, note_type).observe(this, notesList -> {
-                fragmentsAdapter.update(notesList, note_type);
+                adapter.setData(notesList);
         });
     }
 
@@ -179,8 +173,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Menu menu = navigationView.getMenu();
         if(tags == null){
             tags = menu.addSubMenu("Tags");
-            MenuItem trash = menu.add(Menu.NONE, R.drawable.ic_trash, Menu.NONE, "Trash");
-            trash.setIcon(R.drawable.ic_trash);
             MenuItem cloudSave = menu.add(Menu.NONE, R.drawable.ic_cloud_save, Menu.NONE, "Save to Cloud");
             cloudSave.setIcon(R.drawable.ic_cloud_save);
             MenuItem fromCloud = menu.add(Menu.NONE, R.drawable.ic_cloud_save + 1, Menu.NONE, "Get from Cloud");
@@ -195,7 +187,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             for(Note note : noteList)
                 if(note.getTag() != null && !note.getTag().trim().isEmpty())
                     all_tags.add(note.getTag());
+            for(String s : all_tags)
+                tags_labels.putIfAbsent(s, Collections.frequency(all_tags, s));
+            for(Map.Entry<String, Integer> entry : tags_labels.entrySet())
+                tags.add(Menu.NONE, entry.getValue() + 123 , Menu.NONE, entry.getKey() + " (" +
+                        entry.getValue() + ")");
 
+            if(tags_labels.keySet().size() == 0){
+                tags.add("Empty");
+                tags.add("Empty");
+            }
             MenuItem nav_memos = menu.findItem(R.id.memos);
             TextView memosTV;
 
@@ -205,120 +206,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             memosTV.setTextColor(ContextCompat.getColor(this, R.color.colorMyAccent));
             memosTV.setText(String.valueOf(noteList.size()));
         });
-        viewModel.getAllNotes(NOTE_TYPE.JOURNAL).observe(this, noteList -> {
-            journalList = noteList;
-            getMaxId(noteList);
-
-            for(Note note : noteList)
-                if(note.getTag() != null && !note.getTag().trim().isEmpty())
-                    all_tags.add(note.getTag());
-            addAllTags(all_tags);
-            MenuItem nav_journal = menu.findItem(R.id.journal);
-            TextView journalTV;
-            journalTV = (TextView) nav_journal.getActionView();
-            journalTV.setGravity(Gravity.CENTER_VERTICAL);
-            journalTV.setTypeface(null, Typeface.BOLD);
-            journalTV.setTextColor(ContextCompat.getColor(this, R.color.colorMyAccent));
-            journalTV.setText(String.valueOf(noteList.size()));
-        });
 
 
     }
 
-    private void addAllTags(List<String> all_tags){
-        for(String s : all_tags)
-            tags_labels.putIfAbsent(s, Collections.frequency(all_tags, s));
-        for(Map.Entry<String, Integer> entry : tags_labels.entrySet())
-            tags.add(Menu.NONE, entry.getValue() + 123 , Menu.NONE, entry.getKey() + " (" +
-                    entry.getValue() + ")");
-
-        if(tags_labels.keySet().size() == 0){
-            tags.add("Empty");
-            tags.add("Empty");
-        }
-    }
-
-    private void setupBottomNav() {
-        binding.bottomNav.setBackground(null);
-        binding.bottomNav.setOnNavigationItemSelectedListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.memos:
-                    binding.viewPager.setCurrentItem(0);
-                    navigationView.setCheckedItem(R.id.memos);
-
-                    break;
-                case R.id.journal:
-                    binding.viewPager.setCurrentItem(1);
-                    navigationView.setCheckedItem(R.id.journal);
-                    break;
-            }
-            return true;
-        });
-    }
-
-    private void setupViewPager() {
-        fragmentsAdapter = new FragmentsAdapter(getSupportFragmentManager());
-        fragmentsAdapter.addFragment(MemosFragment.newInstance(), "Memos");
-        fragmentsAdapter.addFragment(JournalFragment.newInstance(), "Journal");
-
-        binding.viewPager.setOffscreenPageLimit(1);
-        binding.viewPager.setAdapter(fragmentsAdapter);
-
-        binding.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                switch (position) {
-                    case 0:
-                        if(!binding.toolbar.getTitle().equals("Trash")) {
-                            binding.bottomNav.getMenu().findItem(R.id.memos).setChecked(true);
-                            binding.toolbar.setTitle("Memos");
-                            search.setQuery("", false);
-                            search.setIconified(true);
-                        }
-                        break;
-                    case 1:
-                        if(!binding.toolbar.getTitle().equals("Trash")) {
-                            binding.bottomNav.getMenu().findItem(R.id.journal).setChecked(true);
-                            binding.toolbar.setTitle("Journal");
-                            search.setQuery("", false);
-                            search.setIconified(true);
-                        }
-                        break;
-                }
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
-    }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.memos:
                 binding.toolbar.setTitle("Memos");
-                binding.viewPager.setCurrentItem(0);
-                fragmentsAdapter.update(memoList, NOTE_TYPE.MEMO);
-                break;
-            case R.id.journal:
-                binding.toolbar.setTitle("Journal");
-                binding.viewPager.setCurrentItem(1);
-                fragmentsAdapter.update(journalList, NOTE_TYPE.JOURNAL);
+                adapter.setData(notes);
                 break;
             case R.id.vault:
                 Toast.makeText(this, "Vault: In development", Toast.LENGTH_SHORT).show();
                 break;
             case R.drawable.ic_trash:
                 binding.toolbar.setTitle("Trash");
-                fragmentsAdapter.update(trashList_memo, NOTE_TYPE.TRASH_MEMO);
-                fragmentsAdapter.update(trashList_journal, NOTE_TYPE.TRASH_JOURNAL);
 
                 break;
             case R.drawable.ic_cloud_save:
@@ -340,17 +244,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void filterNotesByTag(String s) {
         List<Note> filteredMemos = new ArrayList<>();
-        List<Note> filteredJournal = new ArrayList<>();
-        for(Note note: memoList)
+        for(Note note: notes)
             if(note.getTag() != null && note.getTag().equals(s))
                 filteredMemos.add(note);
-        for(Note note: journalList)
-            if(note.getTag() != null && note.getTag().equals(s))
-                filteredJournal.add(note);
         if(!filteredMemos.isEmpty())
-            fragmentsAdapter.update(filteredMemos, NOTE_TYPE.MEMO);
-        if(!filteredJournal.isEmpty())
-            fragmentsAdapter.update(filteredJournal, NOTE_TYPE.JOURNAL);
+            adapter.setData(filteredMemos);
     }
 
     private void getNotesToApp() {
@@ -409,5 +307,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public void OnMemoClick(Note note) {
+        Intent intent = new Intent(this, NewNoteActivity.class);
+        intent.putExtra("note_type", note.getNote_type());
+        intent.putExtra("note", note);
+        startActivity(intent);
     }
 }
