@@ -5,7 +5,8 @@ public enum NOTE_TYPE {
     JOURNAL("JOURNAL"),
     VAULT("VAULT"),
     DRAFT("DRAFT"),
-    TRASH("TRASH");
+    TRASH_MEMO("TRASH_MEMO"),
+    TRASH_JOURNAL("TRASH_JOURNAL");
 
     private final String text;
 

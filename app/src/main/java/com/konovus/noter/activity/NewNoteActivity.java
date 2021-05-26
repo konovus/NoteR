@@ -7,7 +7,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
@@ -15,42 +14,35 @@ import androidx.work.WorkRequest;
 
 import android.Manifest;
 import android.app.DatePickerDialog;
-import android.app.IntentService;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.TimePickerDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.RelativeLayout;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.konovus.noter.R;
 import com.konovus.noter.databinding.ActivityNewNoteBinding;
+import com.konovus.noter.databinding.ChecklistRowBinding;
 import com.konovus.noter.databinding.PalleteLayoutBinding;
 import com.konovus.noter.entity.Note;
-import com.konovus.noter.util.Delegate;
 import com.konovus.noter.util.NOTE_TYPE;
-import com.konovus.noter.util.SavingNoteService;
 import com.konovus.noter.util.StorageUtils;
 import com.konovus.noter.util.WorkerNoteIt;
 import com.konovus.noter.viewmodel.AddNoteViewModel;
@@ -63,7 +55,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -105,7 +96,14 @@ public class NewNoteActivity extends AppCompatActivity {
             onBackPressed();
         });
         binding.noteItBtn.setOnClickListener(v -> {
-            saveNote();
+            if(note.getNote_type() == NOTE_TYPE.TRASH_MEMO){
+                note.setNote_type(NOTE_TYPE.MEMO);
+                viewModel.updateNote(note);
+            }
+            else if(note.getNote_type() == NOTE_TYPE.TRASH_JOURNAL) {
+                note.setNote_type(NOTE_TYPE.JOURNAL);
+                viewModel.updateNote(note);
+            } else saveNote();
             if(note.getText() != null && !note.getText().trim().isEmpty()){
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
@@ -149,7 +147,12 @@ public class NewNoteActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                saveEmergency(s.toString());
+                if(note.getText() == null)
+                    saveEmergency(s.toString());
+                else {
+                    note.setText(s.toString());
+                    viewModel.updateNote(note);
+                }
             }
         });
     }
@@ -185,12 +188,28 @@ public class NewNoteActivity extends AppCompatActivity {
                 .inflate(R.layout.checklist_row, null);
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(binding.checklistWrapper.getLayoutParams());
         binding.checklistWrapper.addView(check_row, 0, layoutParams);
+        ChecklistRowBinding checkBinding = DataBindingUtil.bind(check_row);
+        checkBinding.checkBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(isChecked){
+                checkBinding.textViewChecklist.setPaintFlags(checkBinding.textViewChecklist.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            } else {
+                checkBinding.textViewChecklist.setPaintFlags(checkBinding.textViewChecklist.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            }
+        });
     }
 
     private void deleteNote() {
-        if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty())
-            new File(note.getImage_path()).delete();
-        viewModel.deleteNote(note);
+        if(note.getNote_type() == NOTE_TYPE.TRASH_MEMO || note.getNote_type() == NOTE_TYPE.TRASH_JOURNAL) {
+            if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty())
+                new File(note.getImage_path()).delete();
+            viewModel.deleteNote(note);
+        } else{
+            note.setRemoval_date(Calendar.getInstance().getTime());
+            if(note.getNote_type() == NOTE_TYPE.MEMO)
+                note.setNote_type(NOTE_TYPE.TRASH_MEMO);
+            else note.setNote_type(NOTE_TYPE.TRASH_JOURNAL);
+            viewModel.updateNote(note);
+        }
         isSaved = true;
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
@@ -199,6 +218,11 @@ public class NewNoteActivity extends AppCompatActivity {
 
     private void fillPageWithData() {
         note = (Note) getIntent().getSerializableExtra("note");
+        if(note.getNote_type() == NOTE_TYPE.TRASH_MEMO || note.getNote_type() == NOTE_TYPE.TRASH_JOURNAL) {
+            binding.delete.setColorFilter(ContextCompat.getColor(this, R.color.colorBrandy),
+                    PorterDuff.Mode.MULTIPLY);
+            binding.noteItBtn.setImageResource(R.drawable.ic_baseline_replay);
+        }
         if(note.getTitle() != null)
             binding.title.setText(note.getTitle());
         binding.noteText.setText(note.getText());

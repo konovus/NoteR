@@ -171,7 +171,7 @@ public class JournalFragment extends Fragment implements FragmentsAdapter.Update
 
     @Override
     public void update(List<Note> noteList, NOTE_TYPE note_type) {
-        if(note_type == NOTE_TYPE.JOURNAL)
+        if(note_type == NOTE_TYPE.JOURNAL || note_type == NOTE_TYPE.TRASH_JOURNAL)
             adapter.setData(noteList);
     }
 

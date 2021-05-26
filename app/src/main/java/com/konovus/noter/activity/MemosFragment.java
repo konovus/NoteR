@@ -113,7 +113,7 @@ public class MemosFragment extends Fragment implements MemosAdapter.OnMemosClick
 
     @Override
     public void update(List<Note> noteList, NOTE_TYPE note_type) {
-        if(note_type == NOTE_TYPE.MEMO)
+        if(note_type == NOTE_TYPE.MEMO || note_type == NOTE_TYPE.TRASH_MEMO)
             adapter.setData(noteList);
     }
 }

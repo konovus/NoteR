@@ -22,10 +22,10 @@ public class Note implements Serializable {
     private String tag;
 
     private Date date;
+    private Date removal_date;
     private String image_path;
     private String color;
     private String reminder;
-//    @TypeConverters(Note_type_converter.class)
     private NOTE_TYPE note_type;
 
 
@@ -60,6 +60,14 @@ public class Note implements Serializable {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public Date getRemoval_date() {
+        return removal_date;
+    }
+
+    public void setRemoval_date(Date removal_date) {
+        this.removal_date = removal_date;
     }
 
     public String getReminder() {
