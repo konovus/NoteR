@@ -6,7 +6,7 @@
 
     </data>
 
-        <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layout_note"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -17,13 +17,14 @@
                 android:id="@+id/image_note_wrap"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
                 app:cardCornerRadius="@dimen/_10sdp"
                 android:layout_marginBottom="-10dp"
                 android:paddingBottom="@dimen/_10sdp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/transparent">
                 <ImageView
-                    android:id="@+id/image_note"
+                    android:id="@+id/image_note_copy"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:adjustViewBounds="true"
@@ -31,6 +32,21 @@
                     android:layout_alignParentTop="true"
                     app:layout_constraintTop_toTopOf="parent"
                     android:layout_marginBottom="@dimen/_10sdp"/>
+                <ImageView
+                    android:id="@+id/image_note"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:visibility="gone"
+                    android:layout_alignParentTop="true"
+
+                    app:layout_constraintTop_toTopOf="parent"
+
+                    android:layout_marginBottom="@dimen/_10sdp">
+                    <tag
+                        android:id="@+id/zoomable"
+                        android:value="ZoomableViewTag" />
+                </ImageView>
             </androidx.cardview.widget.CardView>
 
             <TextView
@@ -59,6 +75,12 @@
                 android:layout_marginHorizontal="@dimen/_10sdp"
                 android:layout_below="@id/title"
                 app:layout_constraintTop_toBottomOf="@id/title" />
+            <LinearLayout
+                android:id="@+id/checklist_wrapper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintTop_toBottomOf="@id/text_note"/>
 
             <TextView
                 android:id="@+id/date_note"
@@ -73,6 +95,6 @@
                 app:layout_constraintTop_toBottomOf="@id/text_note"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
-        </RelativeLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>

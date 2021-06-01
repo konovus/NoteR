@@ -9,9 +9,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.konovus.noter.R;
+import com.konovus.noter.databinding.ChecklistRowBinding;
+import com.konovus.noter.databinding.ChecklistRowViewingBinding;
 import com.konovus.noter.databinding.MemoLayoutItemBinding;
 import com.konovus.noter.entity.Note;
 
@@ -21,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -60,6 +65,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
 
     @Override
     public void onBindViewHolder(@NonNull MemosViewHolder holder, int position) {
+//        viewBinderHelper.bind(holder.binding.swipeLayout, String.valueOf(notes.get(position).getId()));
         switch (getItemViewType(position)){
             case NOTE_TEXT:
                 holder.bind(notes.get(position), false, false);
@@ -113,8 +119,15 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
             ViewGroup.MarginLayoutParams lp =  (ViewGroup.MarginLayoutParams)binding.title.getLayoutParams();
             ViewGroup.MarginLayoutParams lp_text =  (ViewGroup.MarginLayoutParams)binding.textNote.getLayoutParams();
             if(image){
-                Glide.with(context).load(note.getImage_path()).into(binding.imageNote);
+                Glide.with(context)
+                        .load(note.getImage_path())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(binding.imageNote);
+                Glide.with(context).load(note.getImage_path())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(binding.imageNoteCopy);
                 binding.imageNote.setVisibility(View.VISIBLE);
+                binding.imageNoteCopy.setVisibility(View.VISIBLE);
                 binding.imageNoteWrap.setCardBackgroundColor(Color.parseColor(
                         note.getColor() != null ? note.getColor() : "#1C2226"));
 
@@ -123,16 +136,27 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
             } else {
                 lp.setMargins(10, 50, 0, 0);
             }
-            binding.title.setLayoutParams(lp);
 
             if(title){
                 binding.title.setText(note.getTitle());
                 binding.title.setVisibility(View.VISIBLE);
-            } else lp_text.setMargins(30, 50, 30, 0);
-
-            binding.textNote.setLayoutParams(lp_text);
+            }else lp_text.setMargins(30, 50, 30, 0);
 
             binding.textNote.setText(note.getText());
+
+            if(note.getCheckList() != null){
+                int i= 0;
+                for(Map.Entry<Boolean, String> entry : note.getCheckList().entrySet()){
+                    LinearLayout check_row_view = (LinearLayout) LayoutInflater.from(context)
+                            .inflate(R.layout.checklist_row_viewing, null);
+                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(binding.checklistWrapper.getLayoutParams());
+                    layoutParams.setMargins(0, 20, 0, 0);
+                    binding.checklistWrapper.addView(check_row_view, i++, layoutParams);
+                    ChecklistRowViewingBinding checkRowBinding = DataBindingUtil.bind(check_row_view);
+                    checkRowBinding.checkBtn.setChecked(entry.getKey());
+                    checkRowBinding.textView.setText(entry.getValue());
+                }
+            }
 
             GradientDrawable gradientDrawable = (GradientDrawable) binding.layoutNote.getBackground();
             if(note.getColor() != null && !note.getColor().trim().isEmpty())
@@ -153,9 +177,9 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
     public void setData(List<Note> data) {
         Log.i("NoteR", "MemosAdapter - from setData");
         if(data != null){
-            notes.clear();
-            notes.addAll(data);
+            notes = data;
             notifyDataSetChanged();
+
         }
     }
     public void insertNote(Note note){

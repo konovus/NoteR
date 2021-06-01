@@ -10,7 +10,6 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="@dimen/_26sdp"
-        android:background="@drawable/checkrow_shape"
         android:paddingHorizontal="8dp">
 
         <CheckBox
@@ -18,21 +17,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <EditText
-            android:id="@+id/editText"
+        <TextView
+            android:id="@+id/textView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginBottom="@dimen/_2sdp"
 
             android:includeFontPadding="false"
             android:layout_marginStart="-10dp"
-            android:inputType="text"
             android:background="@null"
             android:textColor="#E8E8E8"
             android:fontFamily="@font/opensans_regular"
-            android:textSize="@dimen/_15ssp"
-            android:imeOptions="actionDone" />
+            android:textSize="@dimen/_15ssp"/>
 
     </LinearLayout>
 </layout>

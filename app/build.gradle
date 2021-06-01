@@ -74,5 +74,7 @@ dependencies {
     implementation 'com.makeramen:roundedimageview:2.3.0'
 //    Worker dependency
     implementation 'androidx.work:work-runtime:2.5.0'
-
+    //  Pinch to zoom library
+    implementation 'com.aghajari.zoomhelper:ZoomHelper:1.0.2'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.4.32'
 }

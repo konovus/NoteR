@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.konovus.noter.dao.NoteDao;
 import com.konovus.noter.entity.Note;
+import com.konovus.noter.util.CheckListConverters;
 import com.konovus.noter.util.DateConverter;
 import com.konovus.noter.util.Note_type_converter;
 
@@ -15,8 +16,8 @@ import androidx.room.TypeConverters;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-@Database(entities = Note.class, version = 4, exportSchema = false)
-@TypeConverters({Note_type_converter.class, DateConverter.class})
+@Database(entities = Note.class, version = 5, exportSchema = false)
+@TypeConverters({Note_type_converter.class, DateConverter.class, CheckListConverters.class})
 public abstract class NoteDatabase extends RoomDatabase {
 
     private static NoteDatabase instance;
@@ -39,10 +40,17 @@ public abstract class NoteDatabase extends RoomDatabase {
 
             }
         };
+        Migration MIGRATION_4_5 = new Migration(4, 5) {
+            @Override
+            public void migrate(@NonNull SupportSQLiteDatabase database) {
+                database.execSQL("ALTER TABLE notes ADD COLUMN checkList TEXT ");
+
+            }
+        };
         if(instance == null)
             instance = Room.databaseBuilder(
                     context, NoteDatabase.class, "notes_db"
-            ).addMigrations(MIGRATION_1_2, MIGRATION_3_4)
+            ).addMigrations(MIGRATION_1_2, MIGRATION_3_4, MIGRATION_4_5)
             .fallbackToDestructiveMigration()
             .build();
 

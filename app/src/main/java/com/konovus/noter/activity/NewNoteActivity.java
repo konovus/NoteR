@@ -30,6 +30,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.ImageView;
@@ -42,6 +43,7 @@ import com.konovus.noter.databinding.ActivityNewNoteBinding;
 import com.konovus.noter.databinding.ChecklistRowBinding;
 import com.konovus.noter.databinding.PalleteLayoutBinding;
 import com.konovus.noter.entity.Note;
+import com.konovus.noter.util.ChecklistBuilder;
 import com.konovus.noter.util.NOTE_TYPE;
 import com.konovus.noter.util.StorageUtils;
 import com.konovus.noter.util.WorkerNoteIt;
@@ -89,14 +91,13 @@ public class NewNoteActivity extends AppCompatActivity {
 
         binding.backArrow.setOnClickListener(v -> onBackPressed());
         binding.noteItBtn.setOnClickListener(v -> {
-
             if(note.getText() != null && !note.getText().trim().isEmpty()){
                 if(note.getNote_type() == NOTE_TYPE.TRASH){
                     note.setNote_type(NOTE_TYPE.MEMO);
                     viewModel.updateNote(note);
                 } else saveNote();
                 Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
+                finish();
                 startActivity(intent);
             }
         });
@@ -107,7 +108,13 @@ public class NewNoteActivity extends AppCompatActivity {
         binding.addColor.setOnClickListener(v -> setupPalette());
         binding.addImg.setOnClickListener(v -> setupAddImage());
         binding.addAlarm.setOnClickListener(v -> setupAlarm());
-        binding.addChecklist.setOnClickListener(v -> setupChecklist());
+        binding.addChecklist.setOnClickListener(v -> {
+//            To change min height, both methods setMinHeight and setMinimumHeight are needed !
+            binding.noteText.setMinimumHeight(0);
+            binding.noteText.setMinHeight(0);
+            ChecklistBuilder checklistBuilder = new ChecklistBuilder(this, this);
+            checklistBuilder.build();
+        });
 
         binding.deleteImg.setOnClickListener(v -> {
             binding.noteImg.setImageBitmap(null);
@@ -168,21 +175,6 @@ public class NewNoteActivity extends AppCompatActivity {
 
         viewModel.addNote(note);
 
-    }
-
-    private void setupChecklist() {
-        LinearLayout check_row = (LinearLayout) LayoutInflater.from(this)
-                .inflate(R.layout.checklist_row, null);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(binding.checklistWrapper.getLayoutParams());
-        binding.checklistWrapper.addView(check_row, 0, layoutParams);
-        ChecklistRowBinding checkBinding = DataBindingUtil.bind(check_row);
-        checkBinding.checkBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if(isChecked){
-                checkBinding.textViewChecklist.setPaintFlags(checkBinding.textViewChecklist.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-            } else {
-                checkBinding.textViewChecklist.setPaintFlags(checkBinding.textViewChecklist.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
-            }
-        });
     }
 
     private void deleteNote() {
@@ -344,6 +336,8 @@ public class NewNoteActivity extends AppCompatActivity {
             Toast.makeText(this, "Note text cannot be empty", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        note.setCheckList(ChecklistBuilder.getCheckList());
 
         note.setColor(selectedColor);
 

@@ -5,6 +5,8 @@ import com.konovus.noter.util.Note_type_converter;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import androidx.annotation.Nullable;
@@ -27,6 +29,7 @@ public class Note implements Serializable {
     private String color;
     private String reminder;
     private NOTE_TYPE note_type;
+    private LinkedHashMap<Boolean, String> checkList;
 
 
     public Note() {}
@@ -132,5 +135,13 @@ public class Note implements Serializable {
 
     public void setImage_path(String image_path) {
         this.image_path = image_path;
+    }
+
+    public LinkedHashMap<Boolean, String> getCheckList() {
+        return checkList;
+    }
+
+    public void setCheckList(LinkedHashMap<Boolean, String> checkList) {
+        this.checkList = checkList;
     }
 }

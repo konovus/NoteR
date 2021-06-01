@@ -1,6 +1,7 @@
 package com.konovus.noter.activity;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,24 +11,24 @@ import androidx.databinding.DataBindingUtil;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aghajari.zoomhelper.ZoomHelper;
 import com.google.android.material.navigation.NavigationView;
 import com.konovus.noter.R;
-import com.konovus.noter.adapter.FragmentsAdapter;
 import com.konovus.noter.adapter.MemosAdapter;
 import com.konovus.noter.databinding.ActivityMainBinding;
 import com.konovus.noter.entity.Note;
@@ -59,16 +60,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final int REQUEST_CODE_ADD_NOTE = 1;
     private FragmentsViewModel viewModel;
     private MemosAdapter adapter;
-    private List<Note> notes = new ArrayList<>();
+    private final List<Note> notes = new ArrayList<>();
 
     private SubMenu tags;
-    private SearchView search;
     private List<Note> memoList;
-    private List<Note> trashList;
+    private List<Note> trashList = new ArrayList<>();
     private HashMap<String, Integer> tags_labels = new HashMap<>();
-    private NavigationView navigationView;
     private List<Note> old_notes = new ArrayList<>();
     private int max_id;
+    private static int rv_pos;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -82,30 +82,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             intent.putExtra("max", max_id);
             startActivityForResult(intent, REQUEST_CODE_ADD_NOTE);
         });
-
         setupDrawer();
         setupSearch();
         setupRecyclerView();
         observe();
-
         checkInTrash();
+
+
     }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        ZoomHelper zoomHelper = ZoomHelper.Companion.getInstance();
+        zoomHelper.setLayoutTheme(android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        return zoomHelper.dispatchTouchEvent(ev,this) || super.dispatchTouchEvent(ev);
+
+    }
+
     private void observe() {
+        Log.i("NoteR", "MemosF - from observe");
+
         viewModel.getAllNotes(NOTE_TYPE.MEMO).observe(this, notesList -> {
-            Log.i("NoteR", "MemosF - from observe");
-            adapter.setData(notesList);
+            notes.addAll(notesList);
+            adapter.setData(notes);
+            if(rv_pos != 0)
+                binding.recyclerView.post(() -> binding.recyclerView.scrollToPosition(rv_pos));
+
         });
     }
+
     private void setupRecyclerView() {
+        Log.i("NoteR", "MemosF - from rvSetup");
+
         adapter = new MemosAdapter(notes, this, this);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        binding.recyclerView.setAdapter(adapter);
         binding.recyclerView.setItemViewCacheSize(100);
+        binding.recyclerView.setAdapter(adapter);
 
     }
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void checkInTrash() {
-        trashList = new ArrayList<>();
         viewModel.getAllNotes(NOTE_TYPE.TRASH).observe(this, noteList -> {
             trashList = noteList;
             checkForExpiredNotes(noteList);
@@ -133,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 max_id = note.getId();
     }
     private void setupSearch() {
-        search = findViewById(R.id.search);
+        SearchView search = findViewById(R.id.search);
         search.setMaxWidth(Integer.MAX_VALUE);
         search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -154,7 +170,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void searchDB(String query, final NOTE_TYPE note_type){
         viewModel.searchNotes(query, note_type).observe(this, notesList -> {
-                adapter.setData(notesList);
+            adapter.setData(notesList);
+            Log.i("NoteR", "MemosF - from searchDB");
+
         });
     }
 
@@ -165,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        navigationView = findViewById(R.id.navView);
+        NavigationView navigationView = findViewById(R.id.navView);
         // get menu from navigationView
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.memos);
@@ -221,9 +239,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.vault:
                 Toast.makeText(this, "Vault: In development", Toast.LENGTH_SHORT).show();
                 break;
-            case R.drawable.ic_trash:
+            case R.id.trash:
                 binding.toolbar.setTitle("Trash");
-
+                adapter.setData(trashList);
                 break;
             case R.drawable.ic_cloud_save:
                 Toast.makeText(this, "Cloud: In development", Toast.LENGTH_SHORT).show();
@@ -310,10 +328,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+    }
+
+    @Override
     public void OnMemoClick(Note note) {
         Intent intent = new Intent(this, NewNoteActivity.class);
         intent.putExtra("note_type", note.getNote_type());
         intent.putExtra("note", note);
+        rv_pos = notes.indexOf(note) + 1;
         startActivity(intent);
     }
 }
