@@ -12,21 +12,21 @@ import androidx.room.TypeConverter;
 public class CheckListConverters {
 
     @TypeConverter
-    public String fromCheckList(LinkedHashMap<Boolean, String> checkList){
+    public String fromCheckList(LinkedHashMap<String, String> checkList){
         if(checkList == null)
             return null;
         Gson gson = new Gson();
-        Type type = new TypeToken<LinkedHashMap<Boolean, String>>() {}.getType();
+        Type type = new TypeToken<LinkedHashMap<String, String>>() {}.getType();
         String json = gson.toJson(checkList, type);
         return json;
     }
     @TypeConverter
-    public LinkedHashMap<Boolean, String> toCheckList(String checkList) {
+    public LinkedHashMap<String, String> toCheckList(String checkList) {
         if (checkList == null)
             return null;
 
         Gson gson = new Gson();
-        Type type = new TypeToken<LinkedHashMap<Boolean, String>>() {}.getType();
+        Type type = new TypeToken<LinkedHashMap<String, String>>() {}.getType();
         return gson.fromJson(checkList, type);
     }
 

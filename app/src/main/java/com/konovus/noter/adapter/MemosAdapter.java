@@ -3,6 +3,7 @@ package com.konovus.noter.adapter;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.util.Log;
@@ -55,7 +56,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
     @NonNull
     @Override
     public MemosViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if(layoutInflater == null)
+        if (layoutInflater == null)
             layoutInflater = LayoutInflater.from(parent.getContext());
         MemoLayoutItemBinding binding = DataBindingUtil.inflate(
                 layoutInflater, R.layout.memo_layout_item, parent, false
@@ -66,7 +67,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
     @Override
     public void onBindViewHolder(@NonNull MemosViewHolder holder, int position) {
 //        viewBinderHelper.bind(holder.binding.swipeLayout, String.valueOf(notes.get(position).getId()));
-        switch (getItemViewType(position)){
+        switch (getItemViewType(position)) {
             case NOTE_TEXT:
                 holder.bind(notes.get(position), false, false);
                 break;
@@ -85,13 +86,13 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
     @Override
     public int getItemViewType(int position) {
         Note note = notes.get(position);
-        if(note.getTitle() != null && !note.getTitle().trim().isEmpty() && note.getImage_path() == null)
+        if (note.getTitle() != null && !note.getTitle().trim().isEmpty() && note.getImage_path() == null)
             return NOTE_TITLE;
-        else if(note.getImage_path() != null && (note.getTitle() == null || note.getTitle().trim().isEmpty()))
+        else if (note.getImage_path() != null && (note.getTitle() == null || note.getTitle().trim().isEmpty()))
             return NOTE_IMAGE;
-        else if((note.getTitle() == null || note.getTitle().trim().isEmpty())&& note.getImage_path() == null)
+        else if ((note.getTitle() == null || note.getTitle().trim().isEmpty()) && note.getImage_path() == null)
             return NOTE_TEXT;
-        else if(note.getTitle() != null && !note.getTitle().trim().isEmpty() && note.getImage_path() != null)
+        else if (note.getTitle() != null && !note.getTitle().trim().isEmpty() && note.getImage_path() != null)
             return NOTE_TITLE_IMAGE;
 
         return super.getItemViewType(position);
@@ -102,11 +103,11 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
         return notes.size();
     }
 
-    public interface OnMemosClickListener{
+    public interface OnMemosClickListener {
         void OnMemoClick(Note note);
     }
 
-    public class MemosViewHolder extends RecyclerView.ViewHolder{
+    public class MemosViewHolder extends RecyclerView.ViewHolder {
 
         private MemoLayoutItemBinding binding;
 
@@ -115,10 +116,10 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
             this.binding = binding;
         }
 
-        public void bind(Note note, boolean image, boolean title){
-            ViewGroup.MarginLayoutParams lp =  (ViewGroup.MarginLayoutParams)binding.title.getLayoutParams();
-            ViewGroup.MarginLayoutParams lp_text =  (ViewGroup.MarginLayoutParams)binding.textNote.getLayoutParams();
-            if(image){
+        public void bind(Note note, boolean image, boolean title) {
+            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) binding.title.getLayoutParams();
+            ViewGroup.MarginLayoutParams lp_text = (ViewGroup.MarginLayoutParams) binding.textNote.getLayoutParams();
+            if (image) {
                 Glide.with(context)
                         .load(note.getImage_path())
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -137,31 +138,35 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
                 lp.setMargins(10, 50, 0, 0);
             }
 
-            if(title){
+            if (title) {
                 binding.title.setText(note.getTitle());
                 binding.title.setVisibility(View.VISIBLE);
-            }else lp_text.setMargins(30, 50, 30, 0);
+            } else lp_text.setMargins(30, 50, 30, 0);
 
             binding.textNote.setText(note.getText());
-
-            if(note.getCheckList() != null){
-                int i= 0;
-                for(Map.Entry<Boolean, String> entry : note.getCheckList().entrySet()){
+            binding.checklistWrapper.removeAllViews();
+            if (note.getCheckList() != null) {
+                binding.checklistWrapper.setVisibility(View.VISIBLE);
+                for (Map.Entry<String, String> entry : note.getCheckList().entrySet()) {
                     LinearLayout check_row_view = (LinearLayout) LayoutInflater.from(context)
                             .inflate(R.layout.checklist_row_viewing, null);
-                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(binding.checklistWrapper.getLayoutParams());
-                    layoutParams.setMargins(0, 20, 0, 0);
-                    binding.checklistWrapper.addView(check_row_view, i++, layoutParams);
+                    binding.checklistWrapper.addView(check_row_view);
                     ChecklistRowViewingBinding checkRowBinding = DataBindingUtil.bind(check_row_view);
-                    checkRowBinding.checkBtn.setChecked(entry.getKey());
+                    if(entry.getKey().contains("true"))
+                        checkRowBinding.checkBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_checkbox));
                     checkRowBinding.textView.setText(entry.getValue());
+                    if(entry.getKey().contains("true"))
+                        checkRowBinding.textView.setPaintFlags(checkRowBinding.textView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                    else
+                        checkRowBinding.textView.setPaintFlags(checkRowBinding.textView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
                 }
             }
 
             GradientDrawable gradientDrawable = (GradientDrawable) binding.layoutNote.getBackground();
-            if(note.getColor() != null && !note.getColor().trim().isEmpty())
+            if (note.getColor() != null && !note.getColor().trim().isEmpty())
                 gradientDrawable.setColor(Color.parseColor(note.getColor()));
-            else gradientDrawable.setColor(ContextCompat.getColor(context, R.color.colorSmokeBlack));
+            else
+                gradientDrawable.setColor(ContextCompat.getColor(context, R.color.colorSmokeBlack));
 
             SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd 'at' HH:mm a yyyy", Locale.ENGLISH);
             SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd", Locale.ENGLISH);
@@ -176,17 +181,19 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
 
     public void setData(List<Note> data) {
         Log.i("NoteR", "MemosAdapter - from setData");
-        if(data != null){
+        if (data != null) {
             notes = data;
             notifyDataSetChanged();
 
         }
     }
-    public void insertNote(Note note){
+
+    public void insertNote(Note note) {
         notes.add(note);
         notifyItemInserted(notes.size() - 1);
     }
-    public void updateNote(Note note, int pos){
+
+    public void updateNote(Note note, int pos) {
         notes.set(pos, note);
         notifyItemChanged(pos, note);
     }

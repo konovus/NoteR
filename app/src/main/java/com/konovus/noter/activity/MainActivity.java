@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void setupSearch() {
         SearchView search = findViewById(R.id.search);
         search.setMaxWidth(Integer.MAX_VALUE);
+        binding.title.setOnClickListener(v -> search.requestFocus());
         search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -233,14 +234,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.memos:
-                binding.toolbar.setTitle("Memos");
+                binding.title.setText("Notes");
                 adapter.setData(notes);
                 break;
             case R.id.vault:
                 Toast.makeText(this, "Vault: In development", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.trash:
-                binding.toolbar.setTitle("Trash");
+                binding.title.setText("Trash");
                 adapter.setData(trashList);
                 break;
             case R.drawable.ic_cloud_save:

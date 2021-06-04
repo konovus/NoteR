@@ -31,6 +31,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.ImageView;
@@ -41,6 +42,7 @@ import android.widget.Toast;
 import com.konovus.noter.R;
 import com.konovus.noter.databinding.ActivityNewNoteBinding;
 import com.konovus.noter.databinding.ChecklistRowBinding;
+import com.konovus.noter.databinding.ChecklistRowViewingBinding;
 import com.konovus.noter.databinding.PalleteLayoutBinding;
 import com.konovus.noter.entity.Note;
 import com.konovus.noter.util.ChecklistBuilder;
@@ -59,7 +61,9 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 
 public class NewNoteActivity extends AppCompatActivity {
 
@@ -109,11 +113,14 @@ public class NewNoteActivity extends AppCompatActivity {
         binding.addImg.setOnClickListener(v -> setupAddImage());
         binding.addAlarm.setOnClickListener(v -> setupAlarm());
         binding.addChecklist.setOnClickListener(v -> {
+
+            if(ChecklistBuilder.getCheckList().isEmpty()) {
 //            To change min height, both methods setMinHeight and setMinimumHeight are needed !
-            binding.noteText.setMinimumHeight(0);
-            binding.noteText.setMinHeight(0);
-            ChecklistBuilder checklistBuilder = new ChecklistBuilder(this, this);
-            checklistBuilder.build();
+                binding.noteText.setMinimumHeight(0);
+                binding.noteText.setMinHeight(0);
+                ChecklistBuilder checklistBuilder = new ChecklistBuilder(this, this, selectedColor);
+                checklistBuilder.build(null);
+            }
         });
 
         binding.deleteImg.setOnClickListener(v -> {
@@ -214,20 +221,22 @@ public class NewNoteActivity extends AppCompatActivity {
             binding.noteImg.setVisibility(View.VISIBLE);
             binding.deleteImg.setVisibility(View.VISIBLE);
         }
+        if (note.getCheckList() != null) {
+            ChecklistBuilder checklistBuilder = new ChecklistBuilder(this, this, note.getColor());
+            checklistBuilder.build(note.getCheckList());
+            binding.noteText.setMinimumHeight(0);
+            binding.noteText.setMinHeight(0);
+        }
     }
 
     private void setupAlarm() {
 
-        DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int monthOfYear,
-                                  int dayOfMonth) {
-                // TODO Auto-generated method stub
-                myCalendar.set(Calendar.YEAR, year);
-                myCalendar.set(Calendar.MONTH, monthOfYear);
-                myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                openTimePicker(myCalendar);
-            }
+        DatePickerDialog.OnDateSetListener date = (view, year, monthOfYear, dayOfMonth) -> {
+            // TODO Auto-generated method stub
+            myCalendar.set(Calendar.YEAR, year);
+            myCalendar.set(Calendar.MONTH, monthOfYear);
+            myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            openTimePicker(myCalendar);
         };
 
         new DatePickerDialog(this, date, myCalendar
@@ -319,7 +328,10 @@ public class NewNoteActivity extends AppCompatActivity {
                     if(c.getTag().toString().equals(selectedColor))
                         c.setImageResource(R.drawable.ic_check);
                     else c.setImageResource(0);
-            });
+                if(!ChecklistBuilder.getCheckList().isEmpty())
+                    ChecklistBuilder.changeColor(selectedColor);
+
+                });
         }
 
     }
@@ -398,6 +410,15 @@ public class NewNoteActivity extends AppCompatActivity {
             return null;
         }
 
+    }
+
+    private void hideKeyboard(View view){
+        InputMethodManager inputMgr = (InputMethodManager) this.
+                getSystemService(Context.INPUT_METHOD_SERVICE);
+        //if keyboard it's not showing, you can set .SHOW_FORCED
+
+        assert inputMgr != null;
+        inputMgr.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.RESULT_HIDDEN);
     }
 
 }

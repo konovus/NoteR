@@ -73,13 +73,14 @@
                 android:fontFamily="@font/opensans_regular"
                 android:layout_marginTop="@dimen/_5sdp"
                 android:layout_marginHorizontal="@dimen/_10sdp"
-                android:layout_below="@id/title"
                 app:layout_constraintTop_toBottomOf="@id/title" />
             <LinearLayout
                 android:id="@+id/checklist_wrapper"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:orientation="vertical"
+                android:paddingTop="@dimen/_5sdp"
                 app:layout_constraintTop_toBottomOf="@id/text_note"/>
 
             <TextView
@@ -90,9 +91,7 @@
                 android:fontFamily="@font/opensans_regular"
                 android:textColor="@color/colorHint"
                 android:layout_margin="@dimen/_10sdp"
-                android:layout_below="@id/text_note"
-                android:layout_alignParentEnd="true"
-                app:layout_constraintTop_toBottomOf="@id/text_note"
+                app:layout_constraintTop_toBottomOf="@id/checklist_wrapper"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>

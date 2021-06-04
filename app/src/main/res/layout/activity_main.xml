@@ -38,9 +38,17 @@
                     android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                     app:menu="@menu/top_bar_menu"
                     app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                    app:title="Memos"
-                    app:layout_scrollFlags="scroll|enterAlways"
-                    />
+                    app:contentInsetStartWithNavigation="0dp"
+                    app:layout_scrollFlags="scroll|enterAlways">
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Notes"
+                        android:fontFamily="@font/ubuntu_medium"
+                        android:textSize="@dimen/_16ssp"
+                        android:textColor="@color/white"/>
+                </androidx.appcompat.widget.Toolbar>
             </com.google.android.material.appbar.AppBarLayout>
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"

@@ -29,7 +29,7 @@ public class Note implements Serializable {
     private String color;
     private String reminder;
     private NOTE_TYPE note_type;
-    private LinkedHashMap<Boolean, String> checkList;
+    private LinkedHashMap<String, String> checkList;
 
 
     public Note() {}
@@ -137,11 +137,11 @@ public class Note implements Serializable {
         this.image_path = image_path;
     }
 
-    public LinkedHashMap<Boolean, String> getCheckList() {
+    public LinkedHashMap<String, String> getCheckList() {
         return checkList;
     }
 
-    public void setCheckList(LinkedHashMap<Boolean, String> checkList) {
+    public void setCheckList(LinkedHashMap<String, String> checkList) {
         this.checkList = checkList;
     }
 }
