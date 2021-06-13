@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/pic_create_wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create Pin Code"
+            android:textSize="@dimen/_20ssp"
+            android:fontFamily="@font/ubuntu_medium"
+            android:textColor="@color/colorText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="@dimen/_250sdp"/>
+
+        <EditText
+            android:id="@+id/pin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="****"
+            android:textColorHint="@color/colorText"
+            android:textColor="@color/colorText"
+            android:fontFamily="@font/ubuntu_regular"
+            android:textSize="@dimen/_28ssp"
+            android:background="@null"
+            android:inputType="number"
+            android:singleLine="true"
+            android:letterSpacing="0.5"
+            app:layout_constraintTop_toBottomOf="@id/tv"
+            app:layout_constraintStart_toStartOf="@id/tv"
+            app:layout_constraintEnd_toEndOf="@id/tv"
+            android:layout_marginTop="@dimen/_20sdp" />
+
+        <TextView
+            android:id="@+id/confirm_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confirm"
+            android:textSize="@dimen/_20ssp"
+            android:fontFamily="@font/ubuntu_medium"
+            android:textColor="@color/colorText"
+            app:layout_constraintStart_toStartOf="@id/tv"
+            app:layout_constraintEnd_toEndOf="@id/tv"
+            app:layout_constraintTop_toBottomOf="@+id/pin"
+            android:layout_marginTop="@dimen/_75sdp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

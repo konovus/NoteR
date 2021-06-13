@@ -77,4 +77,6 @@ dependencies {
     //  Pinch to zoom library
     implementation 'com.aghajari.zoomhelper:ZoomHelper:1.0.2'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.4.32'
+//    Encryption library
+    implementation group: 'org.springframework.security', name: 'spring-security-crypto', version: '5.5.0'
 }

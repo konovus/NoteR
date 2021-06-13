@@ -36,6 +36,7 @@ public class ChecklistBuilder {
     private int row_index;
     private static final List<ChecklistRowBinding> checkBindings = new ArrayList<>();
     private final String color;
+    private boolean checkListExists;
 
     public ChecklistBuilder(Context context, Activity activity, String color){
         this.context = context;
@@ -43,12 +44,13 @@ public class ChecklistBuilder {
         this.color = color;
         checkBindings.clear();
     }
-
+    public static void clearChecklist(){checkBindings.clear();}
     public void build(LinkedHashMap<String, String> checklist){
-        if(checklist != null)
-            for(Map.Entry <String, String> entry : checklist.entrySet())
+        if(checklist != null) {
+            checkListExists = true;
+            for (Map.Entry<String, String> entry : checklist.entrySet())
                 addCheckRow(entry.getKey().contains("true"), entry.getValue());
-        else addCheckRow(false, "");
+        } else addCheckRow(false, "");
     }
     public static LinkedHashMap<String, String> getCheckList(){
         int i = 0;
@@ -89,7 +91,8 @@ public class ChecklistBuilder {
 
 
     private void setupEditText(ChecklistRowBinding checkBinding) {
-        checkBinding.editText.setOnFocusChangeListener((v, hasFocus) -> {showKeyboard();});
+        if(!checkListExists)
+            checkBinding.editText.setOnFocusChangeListener((v, hasFocus) -> {showKeyboard();});
         checkBinding.editText.requestFocus();
         checkBinding.editText.setOnEditorActionListener((v, actionId, event) -> {
             if(actionId == EditorInfo.IME_ACTION_DONE)

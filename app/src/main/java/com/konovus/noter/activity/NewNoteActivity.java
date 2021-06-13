@@ -28,6 +28,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +47,7 @@ import com.konovus.noter.databinding.ChecklistRowViewingBinding;
 import com.konovus.noter.databinding.PalleteLayoutBinding;
 import com.konovus.noter.entity.Note;
 import com.konovus.noter.util.ChecklistBuilder;
+import com.konovus.noter.util.EncryptorFiles;
 import com.konovus.noter.util.NOTE_TYPE;
 import com.konovus.noter.util.StorageUtils;
 import com.konovus.noter.util.WorkerNoteIt;
@@ -76,8 +78,6 @@ public class NewNoteActivity extends AppCompatActivity {
     private Bitmap bitmap;
     private String date_reminder;
     private final Calendar myCalendar = Calendar.getInstance();
-    private int note_id;
-    private boolean fromPickImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,16 +93,20 @@ public class NewNoteActivity extends AppCompatActivity {
             getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorSmokeBlack));
         }
 
-        binding.backArrow.setOnClickListener(v -> onBackPressed());
+        binding.backArrow.setOnClickListener(v -> {
+            ChecklistBuilder.clearChecklist();
+            onBackPressed();
+        });
         binding.noteItBtn.setOnClickListener(v -> {
             if(note.getText() != null && !note.getText().trim().isEmpty()){
                 if(note.getNote_type() == NOTE_TYPE.TRASH){
                     note.setNote_type(NOTE_TYPE.MEMO);
                     viewModel.updateNote(note);
-                } else saveNote();
+                } else saveNote("", false);
                 Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("note", note);
+                setResult(RESULT_OK, intent);
                 finish();
-                startActivity(intent);
             }
         });
 
@@ -112,8 +116,8 @@ public class NewNoteActivity extends AppCompatActivity {
         binding.addColor.setOnClickListener(v -> setupPalette());
         binding.addImg.setOnClickListener(v -> setupAddImage());
         binding.addAlarm.setOnClickListener(v -> setupAlarm());
+        binding.addLock.setOnClickListener(v -> encryptNote());
         binding.addChecklist.setOnClickListener(v -> {
-
             if(ChecklistBuilder.getCheckList().isEmpty()) {
 //            To change min height, both methods setMinHeight and setMinimumHeight are needed !
                 binding.noteText.setMinimumHeight(0);
@@ -137,6 +141,29 @@ public class NewNoteActivity extends AppCompatActivity {
         setupTextWatcher();
     }
 
+    private void encryptNote() {
+        Intent intent = new Intent(this, MainActivity.class);
+        if(note.getNote_type() == NOTE_TYPE.VAULT){
+            note.setNote_type(NOTE_TYPE.MEMO);
+//            if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty()){
+//                String name = note.getImage_path().substring(note.getImage_path().lastIndexOf("/") + 1);
+//                File file = new File(getExternalFilesDir("/").getAbsolutePath()+"/images" + name);
+//                file.delete();
+//            }
+        } else {
+            saveNote("", false);
+            note.setNote_type(NOTE_TYPE.VAULT);
+//            if (note.getImage_path() != null && !note.getImage_path().trim().isEmpty()) {
+//                File file = new File(note.getImage_path());
+//                note.setImage_path(EncryptorFiles.encryptFile(this, note.getImage_path()));
+//                if (file.exists())
+//                    file.delete();
+//            }
+        }
+        viewModel.updateNote(note);
+        startActivity(intent);
+    }
+
     private void setupTextWatcher() {
         binding.noteText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -152,36 +179,13 @@ public class NewNoteActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if(note.getText() == null)
-                    saveEmergency(s.toString());
+                    saveNote(s.toString(), true);
                 else {
                     note.setText(s.toString());
                     viewModel.updateNote(note);
                 }
             }
         });
-    }
-
-    private void saveEmergency(String s) {
-        if(note.getId() == 0)
-            note.setId(getIntent().getIntExtra("max", 100) + 1);
-        note.setNote_type(NOTE_TYPE.MEMO);
-        if(!binding.title.getText().toString().trim().isEmpty())
-            note.setTitle(binding.title.getText().toString());
-        if(!s.trim().isEmpty() )
-            note.setText(s);
-        else return;
-        note.setColor(selectedColor);
-
-        if(note.getDate() == null)
-            note.setDate(Calendar.getInstance().getTime());
-
-        if(date_reminder != null)
-            setupWorker();
-        if(!binding.tag.getText().toString().trim().isEmpty())
-            note.setTag(binding.tag.getText().toString());
-
-        viewModel.addNote(note);
-
     }
 
     private void deleteNote() {
@@ -194,7 +198,6 @@ public class NewNoteActivity extends AppCompatActivity {
             note.setNote_type(NOTE_TYPE.TRASH);
             viewModel.updateNote(note);
         }
-        isSaved = true;
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
         startActivity(intent);
@@ -206,7 +209,9 @@ public class NewNoteActivity extends AppCompatActivity {
             binding.delete.setColorFilter(ContextCompat.getColor(this, R.color.colorBrandy),
                     PorterDuff.Mode.MULTIPLY);
             binding.noteItBtn.setImageResource(R.drawable.ic_baseline_replay);
-        }
+        } else if(note.getNote_type() == NOTE_TYPE.VAULT)
+            binding.addLock.setImageResource(R.drawable.ic_baseline_lock_open_24);
+
         if(note.getTitle() != null)
             binding.title.setText(note.getTitle());
         binding.noteText.setText(note.getText());
@@ -287,7 +292,6 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     private void setupAddImage() {
-        fromPickImage = true;
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_STORAGE_PERMISSION);
@@ -336,13 +340,17 @@ public class NewNoteActivity extends AppCompatActivity {
 
     }
 
-    private void  saveNote() {
+    private void  saveNote(String s, boolean emergency) {
+        if(note.getId() == 0 && emergency)
+            note.setId(getIntent().getIntExtra("max", 100) + 1);
 
-        note.setNote_type(NOTE_TYPE.MEMO);
-
-        if(binding.title.getText() != null)
-            note.setTitle(binding.title.getText().toString());
-        if(binding.noteText.getText() != null && !binding.noteText.getText().toString().trim().isEmpty() )
+        if(note.getNote_type() != null)
+            note.setNote_type(note.getNote_type());
+        else note.setNote_type(NOTE_TYPE.MEMO);
+        note.setTitle(binding.title.getText().toString());
+        if(emergency && !s.trim().isEmpty())
+            note.setText(s);
+        else if(binding.noteText.getText() != null && !binding.noteText.getText().toString().trim().isEmpty() )
             note.setText(binding.noteText.getText().toString());
         else {
             Toast.makeText(this, "Note text cannot be empty", Toast.LENGTH_SHORT).show();
@@ -361,10 +369,10 @@ public class NewNoteActivity extends AppCompatActivity {
         if(!binding.tag.getText().toString().trim().isEmpty())
             note.setTag(binding.tag.getText().toString());
 
+        if(note.getNote_type() == NOTE_TYPE.VAULT && note.getImage_path() != null)
+            note.setImage_path(EncryptorFiles.encryptFile(this, note.getImage_path()));
+
         viewModel.addNote(note);
-
-        isSaved = true;
-
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -377,7 +385,7 @@ public class NewNoteActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE && data != null) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
                 Uri selectedImageUri = result.getUri();
@@ -388,7 +396,6 @@ public class NewNoteActivity extends AppCompatActivity {
                         binding.noteImg.setImageBitmap(bitmap);
                         binding.noteImg.setVisibility(View.VISIBLE);
                         binding.deleteImg.setVisibility(View.VISIBLE);
-                        fromPickImage = false;
                         //      saving the cropped image
                         new SaveInternallyAsync().execute();
                     } catch (Exception e) {
@@ -396,7 +403,7 @@ public class NewNoteActivity extends AppCompatActivity {
                     }
                 }
             }
-        }
+        } else Toast.makeText(this, "Image data is null", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -410,15 +417,6 @@ public class NewNoteActivity extends AppCompatActivity {
             return null;
         }
 
-    }
-
-    private void hideKeyboard(View view){
-        InputMethodManager inputMgr = (InputMethodManager) this.
-                getSystemService(Context.INPUT_METHOD_SERVICE);
-        //if keyboard it's not showing, you can set .SHOW_FORCED
-
-        assert inputMgr != null;
-        inputMgr.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.RESULT_HIDDEN);
     }
 
 }

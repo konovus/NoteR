@@ -1,4 +1,4 @@
-package com.konovus.noter.util;
+package com.konovus.noter.converter;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

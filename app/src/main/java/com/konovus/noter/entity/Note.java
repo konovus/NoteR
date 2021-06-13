@@ -1,18 +1,13 @@
 package com.konovus.noter.entity;
 
 import com.konovus.noter.util.NOTE_TYPE;
-import com.konovus.noter.util.Note_type_converter;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
 
-import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
-import androidx.room.TypeConverters;
 
 @Entity(tableName = "notes")
 public class Note implements Serializable {
@@ -144,4 +139,5 @@ public class Note implements Serializable {
     public void setCheckList(LinkedHashMap<String, String> checkList) {
         this.checkList = checkList;
     }
+
 }

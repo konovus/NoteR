@@ -19,6 +19,7 @@ import com.konovus.noter.databinding.ChecklistRowBinding;
 import com.konovus.noter.databinding.ChecklistRowViewingBinding;
 import com.konovus.noter.databinding.MemoLayoutItemBinding;
 import com.konovus.noter.entity.Note;
+import com.konovus.noter.util.NOTE_TYPE;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,6 +36,8 @@ import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
+
+import static com.konovus.noter.activity.MainActivity.TAG;
 
 public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHolder> {
 
@@ -104,7 +107,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
     }
 
     public interface OnMemosClickListener {
-        void OnMemoClick(Note note);
+        void OnMemoClick(Note note, int pos);
     }
 
     public class MemosViewHolder extends RecyclerView.ViewHolder {
@@ -174,7 +177,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
             Date date = note.getDate();
             binding.dateNote.setText(sdf2.format(date));
 
-            binding.layoutNote.setOnClickListener(v -> clickListener.OnMemoClick(note));
+            binding.layoutNote.setOnClickListener(v -> clickListener.OnMemoClick(note, getAdapterPosition()));
             binding.executePendingBindings();
         }
     }
@@ -184,13 +187,13 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
         if (data != null) {
             notes = data;
             notifyDataSetChanged();
-
         }
     }
 
     public void insertNote(Note note) {
-        notes.add(note);
-        notifyItemInserted(notes.size() - 1);
+        Log.i(TAG, "insertNote: ");
+        notes.add(0, note);
+        notifyItemInserted(0);
     }
 
     public void updateNote(Note note, int pos) {

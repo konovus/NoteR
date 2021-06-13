@@ -1,4 +1,4 @@
-package com.konovus.noter.util;
+package com.konovus.noter.converter;
 
 import java.util.Date;
 

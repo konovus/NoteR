@@ -4,9 +4,9 @@ import android.content.Context;
 
 import com.konovus.noter.dao.NoteDao;
 import com.konovus.noter.entity.Note;
-import com.konovus.noter.util.CheckListConverters;
-import com.konovus.noter.util.DateConverter;
-import com.konovus.noter.util.Note_type_converter;
+import com.konovus.noter.converter.CheckListConverters;
+import com.konovus.noter.converter.DateConverter;
+import com.konovus.noter.converter.Note_type_converter;
 
 import androidx.annotation.NonNull;
 import androidx.room.Database;
