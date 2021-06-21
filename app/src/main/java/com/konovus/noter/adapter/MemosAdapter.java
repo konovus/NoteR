@@ -131,7 +131,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(binding.imageNoteCopy);
                 binding.imageNote.setVisibility(View.VISIBLE);
-                binding.imageNoteCopy.setVisibility(View.VISIBLE);
+                binding.imageNoteCopy.setVisibility(View.INVISIBLE);
                 binding.imageNoteWrap.setCardBackgroundColor(Color.parseColor(
                         note.getColor() != null ? note.getColor() : "#1C2226"));
 
@@ -150,19 +150,23 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
             binding.checklistWrapper.removeAllViews();
             if (note.getCheckList() != null) {
                 binding.checklistWrapper.setVisibility(View.VISIBLE);
-                for (Map.Entry<String, String> entry : note.getCheckList().entrySet()) {
-                    LinearLayout check_row_view = (LinearLayout) LayoutInflater.from(context)
-                            .inflate(R.layout.checklist_row_viewing, null);
-                    binding.checklistWrapper.addView(check_row_view);
-                    ChecklistRowViewingBinding checkRowBinding = DataBindingUtil.bind(check_row_view);
-                    if(entry.getKey().contains("true"))
-                        checkRowBinding.checkBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_checkbox));
-                    checkRowBinding.textView.setText(entry.getValue());
-                    if(entry.getKey().contains("true"))
-                        checkRowBinding.textView.setPaintFlags(checkRowBinding.textView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                    else
-                        checkRowBinding.textView.setPaintFlags(checkRowBinding.textView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
-                }
+                for(int i = 0; i < note.getCheckList().size(); i++)
+                    for (Map.Entry<String, String> entry : note.getCheckList().entrySet()) {
+                        if(entry.getKey().contains("" + i)){
+                            LinearLayout check_row_view = (LinearLayout) LayoutInflater.from(context)
+                                    .inflate(R.layout.checklist_row_viewing, null);
+                            binding.checklistWrapper.addView(check_row_view);
+                            ChecklistRowViewingBinding checkRowBinding = DataBindingUtil.bind(check_row_view);
+                            if(entry.getKey().contains("true"))
+                                checkRowBinding.checkBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_checkbox));
+                            checkRowBinding.textView.setText(entry.getValue());
+                            if(entry.getKey().contains("true"))
+                                checkRowBinding.textView.setPaintFlags(checkRowBinding.textView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                            else
+                                checkRowBinding.textView.setPaintFlags(checkRowBinding.textView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+
+                        }
+                    }
             }
 
             GradientDrawable gradientDrawable = (GradientDrawable) binding.layoutNote.getBackground();
@@ -171,7 +175,6 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
             else
                 gradientDrawable.setColor(ContextCompat.getColor(context, R.color.colorSmokeBlack));
 
-            SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd 'at' HH:mm a yyyy", Locale.ENGLISH);
             SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd", Locale.ENGLISH);
 
             Date date = note.getDate();
@@ -200,6 +203,12 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
         notes.set(pos, note);
         notifyItemChanged(pos, note);
     }
+
+    public void removeNote(int pos) {
+        notes.remove(pos);
+        notifyItemRemoved(pos);
+    }
+
 
 //    private static DiffUtil.ItemCallback<Note> DIFF_CALLBACK =
 //            new DiffUtil.ItemCallback<Note>() {

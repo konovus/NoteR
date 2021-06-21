@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "714100127196",
+    "firebase_url": "https://noter-8a0f0-default-rtdb.europe-west1.firebasedatabase.app/",
+    "project_id": "noter-8a0f0",
+    "storage_bucket": "noter-8a0f0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:714100127196:android:6f73759d202935e0d08b19",
+        "android_client_info": {
+          "package_name": "com.konovus.noter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "714100127196-lelkg48dcfscajtnmrmmb48iaimqf1jj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiQpolwhtyuOaOfCyW8SV9wm3TEtGlA2E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "714100127196-lelkg48dcfscajtnmrmmb48iaimqf1jj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

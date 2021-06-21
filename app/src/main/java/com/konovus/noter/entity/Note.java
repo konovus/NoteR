@@ -4,7 +4,9 @@ import com.konovus.noter.util.NOTE_TYPE;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -24,12 +26,36 @@ public class Note implements Serializable {
     private String color;
     private String reminder;
     private NOTE_TYPE note_type;
-    private LinkedHashMap<String, String> checkList;
+    private HashMap<String, String> checkList;
 
 
     public Note() {}
 
-//    @Override
+    public Note(int id, String title, String text, String tag, Date date, Date removal_date, String image_path, String color, String reminder, NOTE_TYPE note_type, LinkedHashMap<String, String> checkList) {
+        this.id = id;
+        this.title = title;
+        this.text = text;
+        this.tag = tag;
+        this.date = date;
+        this.removal_date = removal_date;
+        this.image_path = image_path;
+        this.color = color;
+        this.reminder = reminder;
+        this.note_type = note_type;
+        this.checkList = checkList;
+    }
+
+    @Override
+    public String toString() {
+        return "Note{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", text='" + text + '\'' +
+                ", checkList=" + checkList +
+                '}';
+    }
+
+    //    @Override
 //    public boolean equals(Object o) {
 //        // self check
 //        if (this == o)
@@ -132,11 +158,11 @@ public class Note implements Serializable {
         this.image_path = image_path;
     }
 
-    public LinkedHashMap<String, String> getCheckList() {
+    public HashMap<String, String> getCheckList() {
         return checkList;
     }
 
-    public void setCheckList(LinkedHashMap<String, String> checkList) {
+    public void setCheckList(HashMap<String, String> checkList) {
         this.checkList = checkList;
     }
 

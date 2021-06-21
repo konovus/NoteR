@@ -45,16 +45,19 @@ public class ChecklistBuilder {
         checkBindings.clear();
     }
     public static void clearChecklist(){checkBindings.clear();}
-    public void build(LinkedHashMap<String, String> checklist){
+    public void build(HashMap<String, String> checklist){
         if(checklist != null) {
             checkListExists = true;
-            for (Map.Entry<String, String> entry : checklist.entrySet())
-                addCheckRow(entry.getKey().contains("true"), entry.getValue());
+            for(int i = 0; i < checklist.entrySet().size(); i ++)
+                for (Map.Entry<String, String> entry : checklist.entrySet())
+                    if(entry.getKey().contains("" + i))
+                        addCheckRow(entry.getKey().contains("true"), entry.getValue());
+
         } else addCheckRow(false, "");
     }
-    public static LinkedHashMap<String, String> getCheckList(){
+    public static HashMap<String, String> getCheckList(){
         int i = 0;
-        LinkedHashMap<String, String> checkList = new LinkedHashMap<>();
+        HashMap<String, String> checkList = new HashMap<>();
         for(ChecklistRowBinding checklistRowBinding: checkBindings)
             checkList.put("" + i++ + checklistRowBinding.checkBtn.isChecked(), checklistRowBinding.editText.getText().toString());
         return checkList;

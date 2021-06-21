@@ -7,9 +7,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
@@ -19,6 +17,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -34,23 +33,31 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aghajari.zoomhelper.ZoomHelper;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.konovus.noter.R;
 import com.konovus.noter.adapter.MemosAdapter;
 import com.konovus.noter.databinding.ActivityMainBinding;
-import com.konovus.noter.databinding.PalleteLayoutBinding;
+import com.konovus.noter.databinding.CloudDialogLayoutBinding;
 import com.konovus.noter.databinding.PinCreateLayoutBinding;
 import com.konovus.noter.databinding.PinEnterLayoutBinding;
 import com.konovus.noter.entity.Note;
-import com.konovus.noter.util.EncryptorFiles;
 import com.konovus.noter.util.EncryptorString;
 import com.konovus.noter.util.NOTE_TYPE;
 import com.konovus.noter.viewmodel.FragmentsViewModel;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -64,6 +71,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -78,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final int REQUEST_CODE_ADD_NOTE = 1;
     public static final int REQUEST_CODE_UPDATE_NOTE = 3;
     public static final int REQUEST_CODE_ADD_NOTE_VAULT = 2;
+    public static final int REQUEST_CODE_DELETE_NOTE = 5;
+    public static final int REQUEST_CODE_TRASH = 4;
     private FragmentsViewModel viewModel;
     private MemosAdapter adapter;
     private final List<Note> notes = new ArrayList<>();
@@ -91,6 +101,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private int max_id;
     private static int rv_pos;
     private String pin;
+    private boolean fromCloud;
+//    Firebase
+    private FirebaseDatabase database;
+    private DatabaseReference root;
+    private StorageReference storageRef;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -98,6 +113,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         viewModel = new ViewModelProvider(this).get(FragmentsViewModel.class);
+
+        database = FirebaseDatabase.getInstance();
+        root = database.getReference().child("Notes");
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        storageRef = storage.getReference();
 
         binding.addBtn.setOnClickListener(v -> {
             Intent intent = new Intent(this, NewNoteActivity.class);
@@ -126,19 +146,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ZoomHelper zoomHelper = ZoomHelper.Companion.getInstance();
         zoomHelper.setLayoutTheme(android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         return zoomHelper.dispatchTouchEvent(ev, this) || super.dispatchTouchEvent(ev);
-
     }
 
     private void observe() {
-
         viewModel.getAllNotes(NOTE_TYPE.MEMO).observe(this, notesList -> {
             boolean hasItems = false;
             if(adapter.getItemCount() != 0)
                 hasItems = true;
             notes.clear();
             notes.addAll(notesList);
-            if(!binding.title.getText().toString().equals("Vault") && !hasItems)
+            if(!binding.title.getText().toString().equals("Vault") && (!hasItems || fromCloud)
+                && !binding.title.getText().toString().equals("Trash"))
                 adapter.setData(notesList);
+            fromCloud = false;
             if (rv_pos != 0)
                 binding.recyclerView.post(() -> binding.recyclerView.scrollToPosition(rv_pos));
         });
@@ -158,14 +178,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void getNotesFromTrash() {
         viewModel.getAllNotes(NOTE_TYPE.TRASH).observe(this, noteList -> {
             trashList = noteList;
+            getMaxId(noteList);
             checkForExpiredNotes(noteList);
         });
-
     }
 
     private void getNotesFromVault() {
         viewModel.getAllNotes(NOTE_TYPE.VAULT).observe(this, noteList -> {
             vaultList = noteList;
+            getMaxId(noteList);
 //            for (Note note : vaultList)
 //                if (note.getImage_path() != null)
 //                    note.setImage_path(EncryptorFiles.decryptFile(this, note.getImage_path()));
@@ -203,23 +224,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (query != null && !query.isEmpty())
-                    searchDB(query, NOTE_TYPE.MEMO);
+                    searchDB(query);
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 if (newText != null)
-                    searchDB(newText, NOTE_TYPE.MEMO);
+                    searchDB(newText);
                 return true;
             }
         });
     }
 
-    private void searchDB(String query, final NOTE_TYPE note_type) {
-        viewModel.searchNotes(query, note_type).observe(this, notesList -> {
+    private void searchDB(String query) {
+        viewModel.searchNotes(query, NOTE_TYPE.MEMO).observe(this, notesList -> {
             adapter.setData(notesList);
-            Log.i("NoteR", "MemosF - from searchDB");
+            Log.i(TAG, "MemosF - from searchDB");
 
         });
     }
@@ -238,10 +259,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Menu menu = navigationView.getMenu();
         if (tags == null) {
             tags = menu.addSubMenu("Tags");
-            MenuItem cloudSave = menu.add(Menu.NONE, R.drawable.ic_cloud_save, Menu.NONE, "Save to Cloud");
-            cloudSave.setIcon(R.drawable.ic_cloud_save);
-            MenuItem fromCloud = menu.add(Menu.NONE, R.drawable.ic_cloud_save + 1, Menu.NONE, "Get from Cloud");
-            fromCloud.setIcon(R.drawable.ic_cloud_save);
+            MenuItem cloudSave = menu.add(Menu.NONE, R.drawable.ic_cloud_upload, Menu.NONE, "Save to Cloud");
+            cloudSave.setIcon(R.drawable.ic_cloud_upload);
+            MenuItem fromCloud = menu.add(Menu.NONE, R.drawable.ic_cloud_down, Menu.NONE, "Get from Cloud");
+            fromCloud.setIcon(R.drawable.ic_cloud_down);
         }
         List<String> all_tags = new ArrayList<>();
 
@@ -258,6 +279,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         entry.getValue() + ")");
 
             if (tags_labels.keySet().size() == 0) {
+                tags.clear();
                 tags.add("Empty");
                 tags.add("Empty");
             }
@@ -280,6 +302,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         switch (item.getItemId()) {
             case R.id.memos:
                 binding.title.setText("Notes");
+                binding.addBtn.setVisibility(View.VISIBLE);
+                binding.addBtn.setClickable(true);
                 adapter.setData(notes);
                 break;
             case R.id.vault:
@@ -290,15 +314,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.trash:
                 binding.title.setText("Trash");
                 adapter.setData(trashList);
+                binding.addBtn.setVisibility(View.INVISIBLE);
+                binding.addBtn.setClickable(false);
                 break;
-            case R.drawable.ic_cloud_save:
-                Toast.makeText(this, "Cloud: In development", Toast.LENGTH_SHORT).show();
+            case R.drawable.ic_cloud_upload:
+                setupDialogUpload();
                 break;
-            case R.drawable.ic_cloud_save + 1:
-                Toast.makeText(this, "Getting notes from Storage", Toast.LENGTH_SHORT).show();
-                getNotesToApp();
-                for (Note note : old_notes)
-                    viewModel.addNote(note);
+            case R.drawable.ic_cloud_down:
+                downloadNotes();
+//                Toast.makeText(this, "Getting notes from Storage", Toast.LENGTH_SHORT).show();
+//                getNotesToApp();
+//                for (Note note : old_notes)
+//                    viewModel.addNote(note);
                 break;
         }
         for (Map.Entry<String, Integer> entry : tags_labels.entrySet())
@@ -306,6 +333,127 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 filterNotesByTag(entry.getKey());
         drawerLayout.closeDrawers();
         return true;
+    }
+
+    private void setupDialogUpload() {
+        String cloud_key = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString("cloud_key",  "null");
+        if(cloud_key.equals("null")){
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = LayoutInflater.from(this).inflate(R.layout.cloud_dialog_layout,
+                    findViewById(R.id.cloud_wrapper));
+            builder.setView(view);
+
+            AlertDialog dialog = builder.create();
+
+            if (dialog.getWindow() != null)
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+            CloudDialogLayoutBinding cloudBinding = DataBindingUtil.bind(view);
+            cloudBinding.etCloud.setOnFocusChangeListener((v, hasFocus) -> {
+                if(hasFocus){
+                    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0); // show
+                }
+            });
+            cloudBinding.etCloud.requestFocus();
+            cloudBinding.okBtn.setOnClickListener(v -> {
+                binding.progressBar.setVisibility(View.VISIBLE);
+                dialog.dismiss();
+                PreferenceManager.getDefaultSharedPreferences(this).edit().putString("cloud_key",
+                        cloudBinding.etCloud.getText().toString()).apply();
+                uploadImagesToFirebaseStorage(cloud_key);
+                root.child(cloudBinding.etCloud.getText().toString()).setValue(notes);
+            });
+            cloudBinding.cancelBtn.setOnClickListener(v -> dialog.dismiss());
+            dialog.show();
+            dialog.getWindow().setSoftInputMode (WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        } else {
+            binding.progressBar.setVisibility(View.VISIBLE);
+            root.child(cloud_key).setValue(notes);
+            uploadImagesToFirebaseStorage(cloud_key);
+        }
+    }
+
+    private void uploadImagesToFirebaseStorage(String cloud_key) {
+        boolean fin = false;
+        for(Note note: notes)
+            if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty()){
+                Uri file = Uri.fromFile(new File(note.getImage_path()));
+                StorageReference imagesRef = storageRef.child("images/"+cloud_key + file.getLastPathSegment());
+                UploadTask uploadTask = imagesRef.putFile(file);
+                uploadTask.addOnCompleteListener(command -> {
+                    binding.progressBar.setVisibility(View.GONE);
+                    Toast.makeText(this, "Notes successfully uploaded!", Toast.LENGTH_SHORT).show();
+                }).addOnFailureListener(command -> {
+                    Toast.makeText(this, "Upload failed: " + command.getMessage(), Toast.LENGTH_LONG).show();
+                });
+                fin = true;
+            }
+        if(!fin)
+            Toast.makeText(this, "Notes successfully uploaded!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void downloadNotes() {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = LayoutInflater.from(this).inflate(R.layout.cloud_dialog_layout,
+                    findViewById(R.id.cloud_wrapper));
+            builder.setView(view);
+
+            AlertDialog dialog = builder.create();
+
+            if (dialog.getWindow() != null)
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+            CloudDialogLayoutBinding cloudBinding = DataBindingUtil.bind(view);
+            cloudBinding.tvCloud.setText("Enter your cloud key:");
+            cloudBinding.etCloud.setOnFocusChangeListener((v, hasFocus) -> {
+                if(hasFocus){
+                    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0); // show
+                }
+            });
+            cloudBinding.etCloud.requestFocus();
+            cloudBinding.okBtn.setOnClickListener(v -> {
+                binding.progressBar.setVisibility(View.VISIBLE);
+                PreferenceManager.getDefaultSharedPreferences(this).edit().putString("cloud_key",
+                        cloudBinding.etCloud.getText().toString()).apply();
+                root.child(cloudBinding.etCloud.getText().toString()).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
+                        Note note;
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            note = dataSnapshot.getValue(Note.class);
+                            viewModel.addNote(note);
+                            if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty())
+                                downloadImage(cloudBinding.etCloud.getText().toString(),
+                                        note.getImage_path().substring(note.getImage_path().lastIndexOf("/") + 1));
+                        }
+                        fromCloud = true;
+                        binding.progressBar.setVisibility(View.GONE);
+                        Toast.makeText(getApplicationContext(), "Notes successfully downloaded!", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull @NotNull DatabaseError error) {
+
+                    }
+                });
+                dialog.dismiss();
+            });
+            cloudBinding.cancelBtn.setOnClickListener(v -> dialog.dismiss());
+            dialog.show();
+            dialog.getWindow().setSoftInputMode (WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+    }
+
+    private void downloadImage(String cloud_key, String name) {
+        StorageReference imagesRef = storageRef.child("images/"+cloud_key + name);
+        File directory = new File(getExternalFilesDir("/").getAbsolutePath()+"/images/");
+        File file = new File(directory,name);
+        imagesRef.getFile(file).addOnCompleteListener(command -> {
+
+        }).addOnFailureListener(command -> Toast.makeText(this, "Download failed, " + command.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void setupVault() {
@@ -374,6 +522,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     hideKeyboard(pinBinding.pin);
                     binding.title.setText("Vault");
                     adapter.setData(vaultList);
+                    binding.addBtn.setVisibility(View.INVISIBLE);
+                    binding.addBtn.setClickable(false);
                 }
             }
 
@@ -460,17 +610,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_CODE_ADD_NOTE_VAULT){
+        if(requestCode == REQUEST_CODE_ADD_NOTE_VAULT && resultCode == RESULT_OK){
             binding.title.setText("Vault");
             adapter.setData(vaultList);
-            tags.clear();
-        } else if(requestCode == REQUEST_CODE_ADD_NOTE && data != null){
+        } else if(requestCode == REQUEST_CODE_ADD_NOTE && data != null && resultCode == RESULT_OK){
             adapter.insertNote((Note) data.getSerializableExtra("note"));
             binding.recyclerView.post(() -> binding.recyclerView.scrollToPosition(0));
-            tags.clear();
-        } else if(requestCode == REQUEST_CODE_UPDATE_NOTE && data != null){
-            adapter.updateNote((Note) data.getSerializableExtra("note"), rv_pos - 1);
-            tags.clear();
+        } else if(requestCode == REQUEST_CODE_UPDATE_NOTE && data != null && resultCode == RESULT_OK){
+            adapter.updateNote((Note) data.getSerializableExtra("note"), rv_pos );
+        } else if (requestCode == REQUEST_CODE_TRASH && resultCode == RESULT_OK){
+            adapter.removeNote(rv_pos);
         }
     }
 
@@ -483,8 +632,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void OnMemoClick(Note note, int pos) {
         Intent intent = new Intent(this, NewNoteActivity.class);
         intent.putExtra("note", note);
-        rv_pos = pos + 1;
-        if(note.getNote_type() == NOTE_TYPE.VAULT)
+        rv_pos = pos;
+        if(note.getNote_type() == NOTE_TYPE.TRASH)
+            startActivityForResult(intent, REQUEST_CODE_TRASH);
+        else if(note.getNote_type() == NOTE_TYPE.VAULT)
             startActivityForResult(intent, REQUEST_CODE_ADD_NOTE_VAULT);
         else startActivityForResult(intent, REQUEST_CODE_UPDATE_NOTE);
     }
