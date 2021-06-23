@@ -55,6 +55,7 @@ import com.konovus.noter.databinding.PinEnterLayoutBinding;
 import com.konovus.noter.entity.Note;
 import com.konovus.noter.util.EncryptorString;
 import com.konovus.noter.util.NOTE_TYPE;
+import com.konovus.noter.util.SendMailTask;
 import com.konovus.noter.viewmodel.FragmentsViewModel;
 
 import org.jetbrains.annotations.NotNull;
@@ -102,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static int rv_pos;
     private String pin;
     private boolean fromCloud;
-//    Firebase
+    //    Firebase
     private FirebaseDatabase database;
     private DatabaseReference root;
     private StorageReference storageRef;
@@ -131,13 +132,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getNotesFromTrash();
         getNotesFromVault();
         checkForPin();
+
     }
 
     private void checkForPin() {
         EncryptorString encryptor = new EncryptorString();
         String encryptedPin = PreferenceManager.getDefaultSharedPreferences(this)
-                .getString("pin",  "null");
-        if(!encryptedPin.equals("null"))
+                .getString("pin", "null");
+        if (!encryptedPin.equals("null"))
             pin = encryptor.decrypt(encryptedPin);
     }
 
@@ -151,12 +153,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void observe() {
         viewModel.getAllNotes(NOTE_TYPE.MEMO).observe(this, notesList -> {
             boolean hasItems = false;
-            if(adapter.getItemCount() != 0)
+            if (adapter.getItemCount() != 0)
                 hasItems = true;
             notes.clear();
             notes.addAll(notesList);
-            if(!binding.title.getText().toString().equals("Vault") && (!hasItems || fromCloud)
-                && !binding.title.getText().toString().equals("Trash"))
+            if (!binding.title.getText().toString().equals("Vault") && (!hasItems || fromCloud)
+                    && !binding.title.getText().toString().equals("Trash"))
                 adapter.setData(notesList);
             fromCloud = false;
             if (rv_pos != 0)
@@ -190,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //            for (Note note : vaultList)
 //                if (note.getImage_path() != null)
 //                    note.setImage_path(EncryptorFiles.decryptFile(this, note.getImage_path()));
-            if(binding.title.getText().toString().equals("Vault"))
+            if (binding.title.getText().toString().equals("Vault"))
                 adapter.setData(vaultList);
         });
 
@@ -307,7 +309,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 adapter.setData(notes);
                 break;
             case R.id.vault:
-                if(pin == null)
+                if (pin == null)
                     setupVault();
                 else showPinEnterLayout();
                 break;
@@ -337,8 +339,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void setupDialogUpload() {
         String cloud_key = PreferenceManager.getDefaultSharedPreferences(this)
-                .getString("cloud_key",  "null");
-        if(cloud_key.equals("null")){
+                .getString("cloud_key", "null");
+        if (cloud_key.equals("null")) {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -352,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
             CloudDialogLayoutBinding cloudBinding = DataBindingUtil.bind(view);
             cloudBinding.etCloud.setOnFocusChangeListener((v, hasFocus) -> {
-                if(hasFocus){
+                if (hasFocus) {
                     imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0); // show
                 }
             });
@@ -367,7 +369,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             });
             cloudBinding.cancelBtn.setOnClickListener(v -> dialog.dismiss());
             dialog.show();
-            dialog.getWindow().setSoftInputMode (WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
         } else {
             binding.progressBar.setVisibility(View.VISIBLE);
@@ -378,10 +380,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void uploadImagesToFirebaseStorage(String cloud_key) {
         boolean fin = false;
-        for(Note note: notes)
-            if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty()){
+        for (Note note : notes)
+            if (note.getImage_path() != null && !note.getImage_path().trim().isEmpty()) {
                 Uri file = Uri.fromFile(new File(note.getImage_path()));
-                StorageReference imagesRef = storageRef.child("images/"+cloud_key + file.getLastPathSegment());
+                StorageReference imagesRef = storageRef.child("images/" + cloud_key + file.getLastPathSegment());
                 UploadTask uploadTask = imagesRef.putFile(file);
                 uploadTask.addOnCompleteListener(command -> {
                     binding.progressBar.setVisibility(View.GONE);
@@ -391,66 +393,66 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
                 fin = true;
             }
-        if(!fin)
+        if (!fin)
             Toast.makeText(this, "Notes successfully uploaded!", Toast.LENGTH_SHORT).show();
     }
 
     private void downloadNotes() {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            View view = LayoutInflater.from(this).inflate(R.layout.cloud_dialog_layout,
-                    findViewById(R.id.cloud_wrapper));
-            builder.setView(view);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.cloud_dialog_layout,
+                findViewById(R.id.cloud_wrapper));
+        builder.setView(view);
 
-            AlertDialog dialog = builder.create();
+        AlertDialog dialog = builder.create();
 
-            if (dialog.getWindow() != null)
-                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-            CloudDialogLayoutBinding cloudBinding = DataBindingUtil.bind(view);
-            cloudBinding.tvCloud.setText("Enter your cloud key:");
-            cloudBinding.etCloud.setOnFocusChangeListener((v, hasFocus) -> {
-                if(hasFocus){
-                    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0); // show
+        if (dialog.getWindow() != null)
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        CloudDialogLayoutBinding cloudBinding = DataBindingUtil.bind(view);
+        cloudBinding.tvCloud.setText("Enter your cloud key:");
+        cloudBinding.etCloud.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0); // show
+            }
+        });
+        cloudBinding.etCloud.requestFocus();
+        cloudBinding.okBtn.setOnClickListener(v -> {
+            binding.progressBar.setVisibility(View.VISIBLE);
+            PreferenceManager.getDefaultSharedPreferences(this).edit().putString("cloud_key",
+                    cloudBinding.etCloud.getText().toString()).apply();
+            root.child(cloudBinding.etCloud.getText().toString()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
+                    Note note;
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        note = dataSnapshot.getValue(Note.class);
+                        viewModel.addNote(note);
+                        if (note.getImage_path() != null && !note.getImage_path().trim().isEmpty())
+                            downloadImage(cloudBinding.etCloud.getText().toString(),
+                                    note.getImage_path().substring(note.getImage_path().lastIndexOf("/") + 1));
+                    }
+                    fromCloud = true;
+                    binding.progressBar.setVisibility(View.GONE);
+                    Toast.makeText(getApplicationContext(), "Notes successfully downloaded!", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onCancelled(@NonNull @NotNull DatabaseError error) {
+
                 }
             });
-            cloudBinding.etCloud.requestFocus();
-            cloudBinding.okBtn.setOnClickListener(v -> {
-                binding.progressBar.setVisibility(View.VISIBLE);
-                PreferenceManager.getDefaultSharedPreferences(this).edit().putString("cloud_key",
-                        cloudBinding.etCloud.getText().toString()).apply();
-                root.child(cloudBinding.etCloud.getText().toString()).addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
-                        Note note;
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            note = dataSnapshot.getValue(Note.class);
-                            viewModel.addNote(note);
-                            if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty())
-                                downloadImage(cloudBinding.etCloud.getText().toString(),
-                                        note.getImage_path().substring(note.getImage_path().lastIndexOf("/") + 1));
-                        }
-                        fromCloud = true;
-                        binding.progressBar.setVisibility(View.GONE);
-                        Toast.makeText(getApplicationContext(), "Notes successfully downloaded!", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull @NotNull DatabaseError error) {
-
-                    }
-                });
-                dialog.dismiss();
-            });
-            cloudBinding.cancelBtn.setOnClickListener(v -> dialog.dismiss());
-            dialog.show();
-            dialog.getWindow().setSoftInputMode (WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            dialog.dismiss();
+        });
+        cloudBinding.cancelBtn.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
 
     private void downloadImage(String cloud_key, String name) {
-        StorageReference imagesRef = storageRef.child("images/"+cloud_key + name);
-        File directory = new File(getExternalFilesDir("/").getAbsolutePath()+"/images/");
-        File file = new File(directory,name);
+        StorageReference imagesRef = storageRef.child("images/" + cloud_key + name);
+        File directory = new File(getExternalFilesDir("/").getAbsolutePath() + "/images/");
+        File file = new File(directory, name);
         imagesRef.getFile(file).addOnCompleteListener(command -> {
 
         }).addOnFailureListener(command -> Toast.makeText(this, "Download failed, " + command.getMessage(), Toast.LENGTH_SHORT).show());
@@ -470,26 +472,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         PinCreateLayoutBinding pinBinding = DataBindingUtil.bind(view);
         pinBinding.pin.setOnFocusChangeListener((v, hasFocus) -> {
-            if(hasFocus){
-                    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0); // show
+            if (hasFocus) {
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0); // show
             }
         });
         pinBinding.pin.requestFocus();
         pinBinding.confirmTv.setOnClickListener(v -> {
-            EncryptorString encryptor = new EncryptorString();
-            PreferenceManager.getDefaultSharedPreferences(this).edit().putString("pin",
-                    encryptor.encrypt(pinBinding.pin.getText().toString())).apply();
-            dialog.dismiss();
-            showPinEnterLayout();
+            if (pinBinding.pin.getText().length() == 4 && !pinBinding.email.getText().toString().trim().isEmpty()) {
+                EncryptorString encryptor = new EncryptorString();
+                PreferenceManager.getDefaultSharedPreferences(this).edit().putString("pin",
+                        encryptor.encrypt(pinBinding.pin.getText().toString())).apply();
+                PreferenceManager.getDefaultSharedPreferences(this).edit().putString("email",
+                        pinBinding.email.getText().toString()).apply();
+                dialog.dismiss();
+                showPinEnterLayout();
+            } else Toast.makeText(this, "Pin must be 4 digits length," +
+                    "and the Email valid.", Toast.LENGTH_SHORT).show();
         });
         dialog.show();
-        dialog.getWindow().setSoftInputMode (WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
     }
 
     private void showPinEnterLayout() {
         drawerLayout.closeDrawer(Gravity.LEFT);
         checkForPin();
+        String email = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString("email", "null");
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.pin_enter_layout,
                 findViewById(R.id.pin_enter_wrapper));
@@ -501,14 +510,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         PinEnterLayoutBinding pinBinding = DataBindingUtil.bind(view);
         pinBinding.pin.setOnFocusChangeListener((v, hasFocus) -> {
-            if(hasFocus){
+            if (hasFocus) {
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.showSoftInput(v, 0);
             }
         });
         pinBinding.pin.requestFocus();
-
-
         pinBinding.pin.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -517,7 +524,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(s.toString().equals(pin)) {
+                if (s.toString().equals(pin)) {
                     dialog.dismiss();
                     hideKeyboard(pinBinding.pin);
                     binding.title.setText("Vault");
@@ -533,10 +540,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
         pinBinding.forgotPin.setOnClickListener(v -> {
-            Toast.makeText(this, "Fuck off", Toast.LENGTH_SHORT).show();
+
+            new SendMailTask(this).execute("ciobancostea@gmail.com",
+                    "zgiyijqdqepfifze", Arrays.asList(email), "NoteIt: Pin Recovery",
+                    "Your pin is " + pin);
         });
         dialog.show();
-        dialog.getWindow().setSoftInputMode (WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
     }
 
@@ -610,15 +620,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_CODE_ADD_NOTE_VAULT && resultCode == RESULT_OK){
+        if (requestCode == REQUEST_CODE_ADD_NOTE_VAULT && resultCode == RESULT_OK) {
             binding.title.setText("Vault");
             adapter.setData(vaultList);
-        } else if(requestCode == REQUEST_CODE_ADD_NOTE && data != null && resultCode == RESULT_OK){
+        } else if (requestCode == REQUEST_CODE_ADD_NOTE && data != null && resultCode == RESULT_OK) {
             adapter.insertNote((Note) data.getSerializableExtra("note"));
             binding.recyclerView.post(() -> binding.recyclerView.scrollToPosition(0));
-        } else if(requestCode == REQUEST_CODE_UPDATE_NOTE && data != null && resultCode == RESULT_OK){
-            adapter.updateNote((Note) data.getSerializableExtra("note"), rv_pos );
-        } else if (requestCode == REQUEST_CODE_TRASH && resultCode == RESULT_OK){
+        } else if (requestCode == REQUEST_CODE_UPDATE_NOTE && data != null && resultCode == RESULT_OK) {
+            adapter.updateNote((Note) data.getSerializableExtra("note"), rv_pos);
+        } else if (requestCode == REQUEST_CODE_TRASH && resultCode == RESULT_OK) {
             adapter.removeNote(rv_pos);
         }
     }
@@ -633,13 +643,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Intent intent = new Intent(this, NewNoteActivity.class);
         intent.putExtra("note", note);
         rv_pos = pos;
-        if(note.getNote_type() == NOTE_TYPE.TRASH)
+        if (note.getNote_type() == NOTE_TYPE.TRASH)
             startActivityForResult(intent, REQUEST_CODE_TRASH);
-        else if(note.getNote_type() == NOTE_TYPE.VAULT)
+        else if (note.getNote_type() == NOTE_TYPE.VAULT)
             startActivityForResult(intent, REQUEST_CODE_ADD_NOTE_VAULT);
         else startActivityForResult(intent, REQUEST_CODE_UPDATE_NOTE);
     }
-    private void hideKeyboard(View view){
+
+    private void hideKeyboard(View view) {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }

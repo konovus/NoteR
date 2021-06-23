@@ -42,7 +42,34 @@
             app:layout_constraintStart_toStartOf="@id/tv"
             app:layout_constraintEnd_toEndOf="@id/tv"
             android:layout_marginTop="@dimen/_20sdp" />
-
+        <TextView
+            android:id="@+id/email_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="and your email for pin recovery:"
+            android:textSize="@dimen/_17ssp"
+            android:fontFamily="@font/ubuntu_medium"
+            android:textColor="@color/colorText"
+            android:layout_marginTop="@dimen/_20sdp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pin"/>
+        <EditText
+            android:id="@+id/email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Your email..."
+            android:textColorHint="@color/colorText"
+            android:textColor="@color/colorText"
+            android:fontFamily="@font/ubuntu_regular"
+            android:textSize="@dimen/_18ssp"
+            android:background="@null"
+            android:inputType="textEmailAddress"
+            android:singleLine="true"
+            app:layout_constraintTop_toBottomOf="@id/email_tv"
+            app:layout_constraintStart_toStartOf="@id/tv"
+            app:layout_constraintEnd_toEndOf="@id/tv"
+            android:layout_marginTop="@dimen/_20sdp" />
         <TextView
             android:id="@+id/confirm_tv"
             android:layout_width="wrap_content"
@@ -53,7 +80,7 @@
             android:textColor="@color/colorText"
             app:layout_constraintStart_toStartOf="@id/tv"
             app:layout_constraintEnd_toEndOf="@id/tv"
-            app:layout_constraintTop_toBottomOf="@+id/pin"
+            app:layout_constraintTop_toBottomOf="@+id/email"
             android:layout_marginTop="@dimen/_75sdp" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
