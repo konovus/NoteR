@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -31,20 +32,6 @@ public class Note implements Serializable {
 
     public Note() {}
 
-    public Note(int id, String title, String text, String tag, Date date, Date removal_date, String image_path, String color, String reminder, NOTE_TYPE note_type, LinkedHashMap<String, String> checkList) {
-        this.id = id;
-        this.title = title;
-        this.text = text;
-        this.tag = tag;
-        this.date = date;
-        this.removal_date = removal_date;
-        this.image_path = image_path;
-        this.color = color;
-        this.reminder = reminder;
-        this.note_type = note_type;
-        this.checkList = checkList;
-    }
-
     @Override
     public String toString() {
         return "Note{" +
@@ -55,27 +42,30 @@ public class Note implements Serializable {
                 '}';
     }
 
-    //    @Override
-//    public boolean equals(Object o) {
-//        // self check
-//        if (this == o)
-//            return true;
-//        // null check
-//        if (o == null)
-//            return false;
-//        // type check and cast
-//        if (getClass() != o.getClass())
-//            return false;
-//        Note note = (Note) o;
-//        // field comparison
-//        return Objects.equals(title, note.title)
-//                && Objects.equals(text, note.text)
-//                && Objects.equals(tag, note.tag)
-//                && Objects.equals(date, note.date)
-//                && Objects.equals(image_path, note.image_path)
-//                && Objects.equals(color, note.color)
-//                && Objects.equals(note_type, note.note_type);
-//    }
+        @Override
+    public boolean equals(Object o) {
+        // self check
+        if (this == o)
+            return true;
+        // null check
+        if (o == null)
+            return false;
+        // type check and cast
+        if (getClass() != o.getClass())
+            return false;
+        Note note = (Note) o;
+        // field comparison
+        return Objects.equals(title, note.title)
+                && Objects.equals(text, note.text)
+                && Objects.equals(tag, note.tag)
+                && Objects.equals(date, note.date)
+                && Objects.equals(removal_date, note.removal_date)
+                && Objects.equals(image_path, note.image_path)
+                && Objects.equals(color, note.color)
+                && Objects.equals(reminder, note.reminder)
+                && Objects.equals(checkList, note.checkList)
+                && Objects.equals(note_type, note.note_type);
+    }
 
 
     public int getId() {

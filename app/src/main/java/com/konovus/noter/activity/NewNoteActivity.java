@@ -102,12 +102,8 @@ public class NewNoteActivity extends AppCompatActivity {
                 if (note.getNote_type() == NOTE_TYPE.TRASH) {
                     note.setNote_type(NOTE_TYPE.MEMO);
                     viewModel.updateNote(note);
-                    setResult(RESULT_OK);
-                    finish();
                 } else saveNote("", false);
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra("note", note);
-                setResult(RESULT_OK, intent);
+                setResult(RESULT_OK);
                 finish();
             }
         });
@@ -144,7 +140,6 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     private void encryptNote() {
-        Intent intent = new Intent(this, MainActivity.class);
         if (note.getNote_type() == NOTE_TYPE.VAULT) {
             note.setNote_type(NOTE_TYPE.MEMO);
 //            if(note.getImage_path() != null && !note.getImage_path().trim().isEmpty()){
@@ -163,7 +158,8 @@ public class NewNoteActivity extends AppCompatActivity {
 //            }
         }
         viewModel.updateNote(note);
-        startActivity(intent);
+        setResult(RESULT_OK);
+        finish();
     }
 
     private void setupTextWatcher() {
@@ -202,9 +198,8 @@ public class NewNoteActivity extends AppCompatActivity {
             note.setRemoval_date(Calendar.getInstance().getTime());
             note.setNote_type(NOTE_TYPE.TRASH);
             viewModel.updateNote(note);
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("note_type", getIntent().getIntExtra("note_type", -1));
-            startActivity(intent);
+            setResult(RESULT_OK);
+            finish();
         }
     }
 

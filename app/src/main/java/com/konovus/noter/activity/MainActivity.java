@@ -79,6 +79,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MemosAdapter.OnMemosClickListener {
 
@@ -91,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final int REQUEST_CODE_TRASH = 4;
     private FragmentsViewModel viewModel;
     private MemosAdapter adapter;
-    private final List<Note> notes = new ArrayList<>();
+    private List<Note> notes = new ArrayList<>();
 
     private DrawerLayout drawerLayout;
     private SubMenu tags;
@@ -152,14 +154,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void observe() {
         viewModel.getAllNotes(NOTE_TYPE.MEMO).observe(this, notesList -> {
-            boolean hasItems = false;
-            if (adapter.getItemCount() != 0)
-                hasItems = true;
-            notes.clear();
-            notes.addAll(notesList);
-            if (!binding.title.getText().toString().equals("Vault") && (!hasItems || fromCloud)
+//            boolean hasItems = false;
+//            if (adapter.getItemCount() != 0)
+//                hasItems = true;
+            notes = notesList;
+            if (!binding.title.getText().toString().equals("Vault") && !fromCloud
                     && !binding.title.getText().toString().equals("Trash"))
-                adapter.setData(notesList);
+                adapter.submitList(notes);
             fromCloud = false;
             if (rv_pos != 0)
                 binding.recyclerView.post(() -> binding.recyclerView.scrollToPosition(rv_pos));
@@ -169,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void setupRecyclerView() {
         Log.i("NoteR", "MemosF - from rvSetup");
 
-        adapter = new MemosAdapter(notes, this, this);
+        adapter = new MemosAdapter(this, this);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerView.setItemViewCacheSize(100);
         binding.recyclerView.setAdapter(adapter);
@@ -180,6 +181,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void getNotesFromTrash() {
         viewModel.getAllNotes(NOTE_TYPE.TRASH).observe(this, noteList -> {
             trashList = noteList;
+            if(binding.title.getText().toString().equals("Trash"))
+                adapter.submitList(noteList);
             getMaxId(noteList);
             checkForExpiredNotes(noteList);
         });
@@ -193,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //                if (note.getImage_path() != null)
 //                    note.setImage_path(EncryptorFiles.decryptFile(this, note.getImage_path()));
             if (binding.title.getText().toString().equals("Vault"))
-                adapter.setData(vaultList);
+                adapter.submitList(vaultList);
         });
 
     }
@@ -240,11 +243,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void searchDB(String query) {
-        viewModel.searchNotes(query, NOTE_TYPE.MEMO).observe(this, notesList -> {
-            adapter.setData(notesList);
-            Log.i(TAG, "MemosF - from searchDB");
+        List<Note> searchList = new ArrayList<>();
+        for(Note note : notes)
+            if(note.getTitle().contains(query) || note.getText().contains(query))
+                searchList.add(note);
 
-        });
+        adapter.submitList(searchList);
+//        I had to change the way i query the notes, because i don't know how to remove this observer, and it's causing some flashes in the rv
+//        viewModel.searchNotes(query, NOTE_TYPE.MEMO).observe(this, notesList -> {
+//                adapter.submitList(notesList);
+//            Log.i(TAG, "MemosF - from searchDB");
+//        });
     }
 
     private void setupDrawer() {
@@ -306,7 +315,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 binding.title.setText("Notes");
                 binding.addBtn.setVisibility(View.VISIBLE);
                 binding.addBtn.setClickable(true);
-                adapter.setData(notes);
+                adapter.submitList(notes);
                 break;
             case R.id.vault:
                 if (pin == null)
@@ -315,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.trash:
                 binding.title.setText("Trash");
-                adapter.setData(trashList);
+                adapter.submitList(trashList);
                 binding.addBtn.setVisibility(View.INVISIBLE);
                 binding.addBtn.setClickable(false);
                 break;
@@ -528,7 +537,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     dialog.dismiss();
                     hideKeyboard(pinBinding.pin);
                     binding.title.setText("Vault");
-                    adapter.setData(vaultList);
+                    adapter.submitList(vaultList);
                     binding.addBtn.setVisibility(View.INVISIBLE);
                     binding.addBtn.setClickable(false);
                 }
@@ -556,7 +565,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (note.getTag() != null && note.getTag().equals(s))
                 filteredMemos.add(note);
         if (!filteredMemos.isEmpty())
-            adapter.setData(filteredMemos);
+            adapter.submitList(filteredMemos);
     }
 
     private void getNotesToApp() {
@@ -620,19 +629,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_ADD_NOTE_VAULT && resultCode == RESULT_OK) {
-            binding.title.setText("Vault");
-            adapter.setData(vaultList);
-        } else if (requestCode == REQUEST_CODE_ADD_NOTE && data != null && resultCode == RESULT_OK) {
-            adapter.insertNote((Note) data.getSerializableExtra("note"));
+        if(requestCode == REQUEST_CODE_ADD_NOTE && resultCode == RESULT_OK)
             binding.recyclerView.post(() -> binding.recyclerView.scrollToPosition(0));
-        } else if (requestCode == REQUEST_CODE_UPDATE_NOTE && data != null && resultCode == RESULT_OK) {
-            adapter.updateNote((Note) data.getSerializableExtra("note"), rv_pos);
-        } else if (requestCode == REQUEST_CODE_TRASH && resultCode == RESULT_OK) {
-            adapter.removeNote(rv_pos);
-        }
     }
-
     @Override
     public void onBackPressed() {
         moveTaskToBack(true);

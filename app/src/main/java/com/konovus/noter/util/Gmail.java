@@ -13,7 +13,7 @@ import javax.mail.internet.MimeMessage;
 
 import android.util.Log;
 
-class GMail {
+public class Gmail {
 
     final String emailPort = "587";// gmail's smtp port
     final String smtpAuth = "true";
@@ -30,11 +30,11 @@ class GMail {
     Session mailSession;
     MimeMessage emailMessage;
 
-    public GMail() {
+    public Gmail() {
 
     }
 
-    public GMail(String fromEmail, String fromPassword,
+    public Gmail(String fromEmail, String fromPassword,
                  List toEmailList, String emailSubject, String emailBody) {
         this.fromEmail = fromEmail;
         this.fromPassword = fromPassword;

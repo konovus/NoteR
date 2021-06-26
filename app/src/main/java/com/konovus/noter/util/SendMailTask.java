@@ -30,7 +30,7 @@ public class SendMailTask extends AsyncTask {
         try {
             Log.i("SendMailTask", "About to instantiate GMail...");
             publishProgress("Processing input....");
-            GMail androidEmail = new GMail(args[0].toString(),
+            Gmail androidEmail = new Gmail(args[0].toString(),
                     args[1].toString(), (List) args[2], args[3].toString(),
                     args[4].toString());
             publishProgress("Preparing mail message....");

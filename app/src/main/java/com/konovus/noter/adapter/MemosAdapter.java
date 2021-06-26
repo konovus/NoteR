@@ -41,7 +41,7 @@ import static com.konovus.noter.activity.MainActivity.TAG;
 
 public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHolder> {
 
-    private List<Note> notes;
+    private List<Note> notes = new ArrayList<>();
     private Context context;
     private LayoutInflater layoutInflater;
     private OnMemosClickListener clickListener;
@@ -50,8 +50,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
     public static final int NOTE_TITLE_IMAGE = 2;
     public static final int NOTE_TEXT = 3;
 
-    public MemosAdapter(List<Note> notes, Context context, OnMemosClickListener clickListener) {
-        this.notes = notes;
+    public MemosAdapter(Context context, OnMemosClickListener clickListener) {
         this.context = context;
         this.clickListener = clickListener;
     }
@@ -185,29 +184,29 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
         }
     }
 
-    public void setData(List<Note> data) {
-        Log.i("NoteR", "MemosAdapter - from setData");
-        if (data != null) {
-            notes = data;
-            notifyDataSetChanged();
-        }
-    }
-
-    public void insertNote(Note note) {
-        Log.i(TAG, "insertNote: ");
-        notes.add(0, note);
-        notifyItemInserted(0);
-    }
-
-    public void updateNote(Note note, int pos) {
-        notes.set(pos, note);
-        notifyItemChanged(pos, note);
-    }
-
-    public void removeNote(int pos) {
-        notes.remove(pos);
-        notifyItemRemoved(pos);
-    }
+//    public void setData(List<Note> data) {
+//        Log.i("NoteR", "MemosAdapter - from setData");
+//        if (data != null) {
+//            notes = data;
+//            notifyDataSetChanged();
+//        }
+//    }
+//
+//    public void insertNote(Note note) {
+//        Log.i(TAG, "insertNote: ");
+//        notes.add(0, note);
+//        notifyItemInserted(0);
+//    }
+//
+//    public void updateNote(Note note, int pos) {
+//        notes.set(pos, note);
+//        notifyItemChanged(pos, note);
+//    }
+//
+//    public void removeNote(int pos) {
+//        notes.remove(pos);
+//        notifyItemRemoved(pos);
+//    }
 
 
 //    private static DiffUtil.ItemCallback<Note> DIFF_CALLBACK =
@@ -228,23 +227,41 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
 //            };
 
 
-//    @Override
-//    public void submitList(@Nullable List<Note> list) {
-//        super.submitList(list != null ? new ArrayList<>(list) : null);
-//    }
-//
-//    static class NoteDiffCallback extends DiffUtil.ItemCallback<Note> {
-//
-//        @Override
-//        public boolean areItemsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
-//            return oldItem.getId() == newItem.getId();
-//
-//        }
-//
-//        @Override
-//        public boolean areContentsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
-//            return oldItem.equals(newItem);
-//
-//        }
-//    }
+    public void submitList(List<Note> data) {
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(
+                new NoteDiffCallback(notes, data)
+        );
+        notes = data;
+        diffResult.dispatchUpdatesTo(this);
+    }
+
+    static class NoteDiffCallback extends DiffUtil.Callback {
+        List<Note> oldNotes;
+        List<Note> newNotes;
+
+        public NoteDiffCallback(List<Note> oldNotes, List<Note> newNotes) {
+            this.oldNotes = oldNotes;
+            this.newNotes = newNotes;
+        }
+
+         @Override
+         public int getOldListSize() {
+             return oldNotes.size();
+         }
+
+         @Override
+         public int getNewListSize() {
+             return newNotes.size();
+         }
+
+         @Override
+         public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+             return oldNotes.get(oldItemPosition).getId() == newNotes.get(newItemPosition).getId();
+         }
+
+         @Override
+         public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+             return oldNotes.get(oldItemPosition).equals(newNotes.get(newItemPosition));
+         }
+    }
 }
