@@ -39,6 +39,7 @@ public class Note implements Serializable {
                 ", title='" + title + '\'' +
                 ", text='" + text + '\'' +
                 ", checkList=" + checkList +
+                ", tag=" + tag +
                 '}';
     }
 

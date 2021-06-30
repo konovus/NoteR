@@ -19,7 +19,7 @@ public class StorageUtils {
         if(!directory.exists())
             directory.mkdir();
         // Create imageDir
-        File mypath = new File(directory,imageName + ".jpg");
+        File mypath = new File(directory,imageName);
 
         FileOutputStream fos = null;
         try {

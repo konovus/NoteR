@@ -42,7 +42,7 @@ import static com.konovus.noter.activity.MainActivity.TAG;
 public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHolder> {
 
     private List<Note> notes = new ArrayList<>();
-    private Context context;
+    private static Context context;
     private LayoutInflater layoutInflater;
     private OnMemosClickListener clickListener;
     public static final int NOTE_TITLE = 0;
@@ -63,7 +63,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
         MemoLayoutItemBinding binding = DataBindingUtil.inflate(
                 layoutInflater, R.layout.memo_layout_item, parent, false
         );
-        return new MemosViewHolder(binding);
+        return new MemosViewHolder(binding, clickListener);
     }
 
     @Override
@@ -109,13 +109,15 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
         void OnMemoClick(Note note, int pos);
     }
 
-    public class MemosViewHolder extends RecyclerView.ViewHolder {
+    public static class MemosViewHolder extends RecyclerView.ViewHolder {
 
         private MemoLayoutItemBinding binding;
+        private OnMemosClickListener clickListener;
 
-        public MemosViewHolder(MemoLayoutItemBinding binding) {
+        public MemosViewHolder(MemoLayoutItemBinding binding, OnMemosClickListener clickListener) {
             super(binding.getRoot());
             this.binding = binding;
+            this.clickListener = clickListener;
         }
 
         public void bind(Note note, boolean image, boolean title) {
@@ -124,7 +126,7 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
             if (image) {
                 Glide.with(context)
                         .load(note.getImage_path())
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
                         .into(binding.imageNote);
                 Glide.with(context).load(note.getImage_path())
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -183,30 +185,6 @@ public class MemosAdapter extends RecyclerView.Adapter<MemosAdapter.MemosViewHol
             binding.executePendingBindings();
         }
     }
-
-//    public void setData(List<Note> data) {
-//        Log.i("NoteR", "MemosAdapter - from setData");
-//        if (data != null) {
-//            notes = data;
-//            notifyDataSetChanged();
-//        }
-//    }
-//
-//    public void insertNote(Note note) {
-//        Log.i(TAG, "insertNote: ");
-//        notes.add(0, note);
-//        notifyItemInserted(0);
-//    }
-//
-//    public void updateNote(Note note, int pos) {
-//        notes.set(pos, note);
-//        notifyItemChanged(pos, note);
-//    }
-//
-//    public void removeNote(int pos) {
-//        notes.remove(pos);
-//        notifyItemRemoved(pos);
-//    }
 
 
 //    private static DiffUtil.ItemCallback<Note> DIFF_CALLBACK =

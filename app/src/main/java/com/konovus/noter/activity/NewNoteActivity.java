@@ -26,26 +26,21 @@ import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.FileUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.CompoundButton;
-import android.widget.DatePicker;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.canhub.cropper.CropImage;
 import com.canhub.cropper.CropImageView;
 import com.konovus.noter.R;
 import com.konovus.noter.databinding.ActivityNewNoteBinding;
-import com.konovus.noter.databinding.ChecklistRowBinding;
-import com.konovus.noter.databinding.ChecklistRowViewingBinding;
 import com.konovus.noter.databinding.PalleteLayoutBinding;
 import com.konovus.noter.entity.Note;
 import com.konovus.noter.util.ChecklistBuilder;
@@ -63,7 +58,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 
@@ -222,7 +216,9 @@ public class NewNoteActivity extends AppCompatActivity {
             getWindow().setStatusBarColor(Color.parseColor(note.getColor()));
         } else getWindow().setStatusBarColor(Color.WHITE);
         if (note.getImage_path() != null && !note.getImage_path().trim().isEmpty()) {
-            binding.noteImg.setImageURI(Uri.parse(note.getImage_path()));
+            Glide.with(this)
+                    .load(note.getImage_path())
+                    .into(binding.noteImg);
             binding.noteImg.setVisibility(View.VISIBLE);
             binding.deleteImg.setVisibility(View.VISIBLE);
         }
@@ -367,8 +363,8 @@ public class NewNoteActivity extends AppCompatActivity {
 
         if (date_reminder != null)
             setupWorker();
-        if (!binding.tag.getText().toString().trim().isEmpty())
-            note.setTag(binding.tag.getText().toString());
+
+        note.setTag(binding.tag.getText().toString());
 
         if (note.getNote_type() == NOTE_TYPE.VAULT && note.getImage_path() != null)
             note.setImage_path(EncryptorFiles.encryptFile(this, note.getImage_path()));
@@ -415,8 +411,14 @@ public class NewNoteActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             String name = String.valueOf(System.currentTimeMillis());
-            String path = StorageUtils.saveToInternalStorage(bitmap, getApplicationContext(), name);
+            String path = StorageUtils.saveToInternalStorage(bitmap, getApplicationContext(), name + ".jpg");
             note.setImage_path(path + "/" + name + ".jpg");
+            File directory = new File(getExternalFilesDir("/").getAbsolutePath()+"/Pictures");
+            String[]entries = directory.list();
+            for(String s: entries){
+                File currentFile = new File(directory.getPath(),s);
+                currentFile.delete();
+            }
             return null;
         }
 
