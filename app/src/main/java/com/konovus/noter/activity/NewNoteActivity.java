@@ -15,6 +15,7 @@ import androidx.work.WorkRequest;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -27,6 +28,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.FileUtils;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -46,6 +48,7 @@ import com.konovus.noter.entity.Note;
 import com.konovus.noter.util.ChecklistBuilder;
 import com.konovus.noter.util.EncryptorFiles;
 import com.konovus.noter.util.NOTE_TYPE;
+import com.konovus.noter.util.StaticM;
 import com.konovus.noter.util.StorageUtils;
 import com.konovus.noter.util.WorkerNoteIt;
 import com.konovus.noter.viewmodel.AddNoteViewModel;
@@ -60,6 +63,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import static com.konovus.noter.activity.MainActivity.widgetNotesMain;
+
 
 public class NewNoteActivity extends AppCompatActivity {
 
@@ -71,6 +76,7 @@ public class NewNoteActivity extends AppCompatActivity {
     private Bitmap bitmap;
     private String date_reminder;
     private final Calendar myCalendar = Calendar.getInstance();
+    private ChecklistBuilder checklistBuilder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,9 +93,10 @@ public class NewNoteActivity extends AppCompatActivity {
         }
 
         binding.backArrow.setOnClickListener(v -> {
-            ChecklistBuilder.clearChecklist();
             setResult(RESULT_CANCELED);
-            onBackPressed();
+            if(getIntent().getBooleanExtra("fromWidget", false))
+                goToMain();
+            else onBackPressed();
         });
         binding.noteItBtn.setOnClickListener(v -> {
             if (note.getText() != null && !note.getText().trim().isEmpty()) {
@@ -97,6 +104,9 @@ public class NewNoteActivity extends AppCompatActivity {
                     note.setNote_type(NOTE_TYPE.MEMO);
                     viewModel.updateNote(note);
                 } else saveNote("", false);
+                if(getIntent().getBooleanExtra("fromWidget", false))
+                    updateTheWidget(false);
+
                 setResult(RESULT_OK);
                 finish();
             }
@@ -110,11 +120,11 @@ public class NewNoteActivity extends AppCompatActivity {
         binding.addAlarm.setOnClickListener(v -> setupAlarm());
         binding.addLock.setOnClickListener(v -> encryptNote());
         binding.addChecklist.setOnClickListener(v -> {
-            if (ChecklistBuilder.getCheckList().isEmpty()) {
+            if (checklistBuilder != null && checklistBuilder.getCheckList().isEmpty()) {
 //            To change min height, both methods setMinHeight and setMinimumHeight are needed !
                 binding.noteText.setMinimumHeight(0);
                 binding.noteText.setMinHeight(0);
-                ChecklistBuilder checklistBuilder = new ChecklistBuilder(this, this, selectedColor);
+                checklistBuilder = new ChecklistBuilder(this, binding.checklistWrapper, selectedColor);
                 checklistBuilder.build(null);
             }
         });
@@ -131,6 +141,27 @@ public class NewNoteActivity extends AppCompatActivity {
         binding.delete.setOnClickListener(v -> deleteNote());
 
         setupTextWatcher();
+    }
+
+    private void updateTheWidget(boolean remove) {
+        List<Note> noteList = StaticM.loadNotesFromPhone("notes", this);
+        noteList.remove(getIntent().getIntExtra("pos", 0));
+        if(!remove)
+            noteList.add(getIntent().getIntExtra("pos", 0), note);
+        StaticM.saveNotesToPhone(noteList, "notes", this);
+
+        int appWidgetId = PreferenceManager.getDefaultSharedPreferences(this)
+                .getInt("appWidgetId", 0);
+        AppWidgetManager.getInstance(this)
+                .notifyAppWidgetViewDataChanged(appWidgetId, R.id.listView);
+        goToMain();
+    }
+
+    private void goToMain() {
+        Intent startMain = new Intent(Intent.ACTION_MAIN);
+        startMain.addCategory(Intent.CATEGORY_HOME);
+        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(startMain);
     }
 
     private void encryptNote() {
@@ -181,20 +212,21 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     private void deleteNote() {
-        ChecklistBuilder.clearChecklist();
+        if(checklistBuilder != null)
+            checklistBuilder.clearChecklist();
         if (note.getNote_type() == NOTE_TYPE.TRASH) {
             if (note.getImage_path() != null && !note.getImage_path().trim().isEmpty())
                 new File(note.getImage_path()).delete();
             viewModel.deleteNote(note);
-            setResult(RESULT_OK);
-            finish();
         } else {
             note.setRemoval_date(Calendar.getInstance().getTime());
             note.setNote_type(NOTE_TYPE.TRASH);
             viewModel.updateNote(note);
-            setResult(RESULT_OK);
-            finish();
+            if(getIntent().getBooleanExtra("fromWidget", false))
+                updateTheWidget(true);
         }
+        setResult(RESULT_OK);
+        finish();
     }
 
     private void fillPageWithData() {
@@ -223,7 +255,7 @@ public class NewNoteActivity extends AppCompatActivity {
             binding.deleteImg.setVisibility(View.VISIBLE);
         }
         if (note.getCheckList() != null && note.getCheckList().size() != 0) {
-            ChecklistBuilder checklistBuilder = new ChecklistBuilder(this, this, note.getColor());
+            checklistBuilder = new ChecklistBuilder(this, binding.checklistWrapper, note.getColor());
             checklistBuilder.build(note.getCheckList());
             binding.noteText.setMinimumHeight(0);
             binding.noteText.setMinHeight(0);
@@ -328,8 +360,8 @@ public class NewNoteActivity extends AppCompatActivity {
                     if (c.getTag().toString().equals(selectedColor))
                         c.setImageResource(R.drawable.ic_check);
                     else c.setImageResource(0);
-                if (!ChecklistBuilder.getCheckList().isEmpty())
-                    ChecklistBuilder.changeColor(selectedColor);
+                if (checklistBuilder != null && !checklistBuilder.getCheckList().isEmpty())
+                    checklistBuilder.changeColor(selectedColor);
 
             });
         }
@@ -352,9 +384,8 @@ public class NewNoteActivity extends AppCompatActivity {
             Toast.makeText(this, "Note text cannot be empty", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        note.setCheckList(ChecklistBuilder.getCheckList());
-        ChecklistBuilder.clearChecklist();
+        if(checklistBuilder != null)
+            note.setCheckList(checklistBuilder.getCheckList());
 
         note.setColor(selectedColor);
 
@@ -366,8 +397,8 @@ public class NewNoteActivity extends AppCompatActivity {
 
         note.setTag(binding.tag.getText().toString());
 
-        if (note.getNote_type() == NOTE_TYPE.VAULT && note.getImage_path() != null)
-            note.setImage_path(EncryptorFiles.encryptFile(this, note.getImage_path()));
+//        if (note.getNote_type() == NOTE_TYPE.VAULT && note.getImage_path() != null)
+//            note.setImage_path(EncryptorFiles.encryptFile(this, note.getImage_path()));
 
         viewModel.addNote(note);
     }

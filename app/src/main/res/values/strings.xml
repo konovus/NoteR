@@ -2,7 +2,7 @@
     <string name="app_name">NoteR</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-<!--    For blind people to be able to listen what is on the screen-->
+    <!--    For blind people to be able to listen what is on the screen-->
     <string name="nav_drawer_open">Open Navigation Drawer</string>
     <string name="nav_drawer_close">Close Navigation Drawer</string>
 </resources>

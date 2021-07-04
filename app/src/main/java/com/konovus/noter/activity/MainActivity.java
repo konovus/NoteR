@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -60,6 +61,7 @@ import com.konovus.noter.entity.Note;
 import com.konovus.noter.util.EncryptorString;
 import com.konovus.noter.util.NOTE_TYPE;
 import com.konovus.noter.util.SendMailTask;
+import com.konovus.noter.util.StaticM;
 import com.konovus.noter.util.StorageUtils;
 import com.konovus.noter.viewmodel.FragmentsViewModel;
 
@@ -88,6 +90,7 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MemosAdapter.OnMemosClickListener {
 
     public static final String TAG = "NoteR";
@@ -103,7 +106,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private List<Note> trashList = new ArrayList<>();
     private HashMap<String, Integer> tags_labels = new HashMap<>();
     private List<Note> old_notes = new ArrayList<>();
-    private int max_id;
+    public static List<Note> widgetNotesMain = new ArrayList<>();
+    public static int max_id;
     private static int rv_pos;
     private String pin;
     private ProgressDialog statusDialog;
@@ -129,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             intent.putExtra("max", max_id);
             startActivityForResult(intent, REQUEST_CODE_ADD_NOTE);
         });
-
+        new Thread(() -> getSharedPrefData()).start();
         setupDrawer();
         setupSearch();
         setupRecyclerView();
@@ -137,6 +141,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getNotesFromTrash();
         getNotesFromVault();
         checkForPin();
+    }
+
+    private void getSharedPrefData() {
     }
 
     private void checkForPin() {
@@ -156,6 +163,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void observe() {
         viewModel.getAllNotes(NOTE_TYPE.MEMO).observe(this, notesList -> {
+//            widgetNotesMain.clear();
+//            for(Note note: notesList)
+//                if(note.getImage_path() == null || note.getImage_path().isEmpty())
+//                    widgetNotesMain.add(note);
+            StaticM.saveNotesToPhone(notesList, "notes", this);
+            int appWidgetId = PreferenceManager.getDefaultSharedPreferences(this)
+                    .getInt("appWidgetId", 0);
+            AppWidgetManager.getInstance(MainActivity.this)
+                    .notifyAppWidgetViewDataChanged(appWidgetId, R.id.listView);
 
             notes = notesList;
             if (!binding.title.getText().toString().equals("Vault")
@@ -163,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 adapter.submitList(notes);
             if (rv_pos != 0)
                 binding.recyclerView.post(() -> binding.recyclerView.scrollToPosition(rv_pos));
+            Log.i(TAG, "observe: from MainActivity");
         });
     }
 

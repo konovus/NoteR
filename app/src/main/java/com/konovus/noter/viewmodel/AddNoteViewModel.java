@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.konovus.noter.entity.Note;
 import com.konovus.noter.repository.NotesRepository;
+import com.konovus.noter.util.NOTE_TYPE;
 
 import java.util.List;
 
@@ -29,5 +30,8 @@ public class AddNoteViewModel extends AndroidViewModel {
     }
     public Note getNoteById(int id){return repository.getNoteById(id);}
     public void deleteNote(Note note){repository.delete(note);}
+    public LiveData<List<Note>> getAllNotes(NOTE_TYPE note_type){
+        return repository.getAllNotes(note_type);
+    }
 
 }

@@ -34,17 +34,21 @@ public class ChecklistBuilder {
     private final Context context;
     private final LinearLayout checkListWrapper;
     private int row_index;
-    private static final List<ChecklistRowBinding> checkBindings = new ArrayList<>();
+    private final List<ChecklistRowBinding> checkBindings = new ArrayList<>();
     private final String color;
     private boolean checkListExists;
 
-    public ChecklistBuilder(Context context, Activity activity, String color){
+    public ChecklistBuilder(Context context, LinearLayout checkListWrapper, String color){
         this.context = context;
-        checkListWrapper = activity.findViewById(R.id.checklist_wrapper);
+        this.checkListWrapper = checkListWrapper;
         this.color = color;
         checkBindings.clear();
     }
-    public static void clearChecklist(){checkBindings.clear();}
+
+    public  void clearChecklist(){
+        checkBindings.clear();
+        checkListWrapper.removeAllViews();
+    }
     public void build(HashMap<String, String> checklist){
         if(checklist != null) {
             checkListExists = true;
@@ -55,7 +59,7 @@ public class ChecklistBuilder {
 
         } else addCheckRow(false, "");
     }
-    public static HashMap<String, String> getCheckList(){
+    public HashMap<String, String> getCheckList(){
         int i = 0;
         HashMap<String, String> checkList = new HashMap<>();
         for(ChecklistRowBinding checklistRowBinding: checkBindings)
@@ -95,7 +99,7 @@ public class ChecklistBuilder {
 
     private void setupEditText(ChecklistRowBinding checkBinding) {
         if(!checkListExists)
-            checkBinding.editText.setOnFocusChangeListener((v, hasFocus) -> {showKeyboard();});
+            checkBinding.editText.setOnFocusChangeListener((v, hasFocus) -> showKeyboard(v));
         checkBinding.editText.requestFocus();
         checkBinding.editText.setOnEditorActionListener((v, actionId, event) -> {
             if(actionId == EditorInfo.IME_ACTION_DONE)
@@ -118,16 +122,16 @@ public class ChecklistBuilder {
         row_index--;
     }
 
-    public static void changeColor(String color){
+    public void changeColor(String color){
         for(ChecklistRowBinding checklistRowBinding : checkBindings){
             GradientDrawable gradientDrawable = (GradientDrawable) checklistRowBinding.checkRowWrapper.getBackground();
             gradientDrawable.setColor(shadeColor(color, 15));
         }
     }
 
-    private void showKeyboard(){
-        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,InputMethodManager.RESULT_HIDDEN);
+    private void showKeyboard(View view){
+            InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(view, 0);
     }
 
 //    this method can lighten or darken a color by a percentage

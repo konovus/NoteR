@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_wrapper"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_note"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+
+
+
+    <TextView
+        android:id="@+id/descriptionWidget"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/opensans_regular"
+        android:gravity="top"
+        android:text="Description"
+        android:textColor="#E8E8E8"
+        android:textSize="15sp" />
+
+    <LinearLayout
+        android:id="@+id/checklist_wrapper_widget"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="-5dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/dateWidget"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/opensans_regular"
+        android:gravity="end"
+        android:paddingTop="10dp"
+        android:text="Date"
+        android:textColor="#CACACA"
+        android:textSize="11sp" />
+
+</LinearLayout>
